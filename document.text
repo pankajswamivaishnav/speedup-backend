@@ -1,0 +1,7 @@
+#1 I have created a `catchAsyncHandler` middleware function where we can pass an async function. We won't need to write try-catch blocks repeatedly. If the function runs successfully, it will resolve. If it fails, we'll pass the `next` parameter in the catch block, along with a message and a status code.
+
+#2 Check catchAsyncHandler function in catchAysnc.js file in middleware folder
+#3 ErrorHandler Function Utils Folder 
+
+
+Note : -- Register User & Make Builty is complete api
