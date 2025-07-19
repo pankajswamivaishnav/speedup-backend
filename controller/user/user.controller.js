@@ -29,7 +29,6 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     password,
     faithLine,
   } = req.body;
-  console.log("Body data -->", req.body);
   const transporterProfile = await Transporter.create({
     transportName,
     transporter_first_name,

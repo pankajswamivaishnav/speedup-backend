@@ -7,10 +7,11 @@ const {
   loginTransporter,
   updateTransporter,
   updateTransporterPassword,
-  forgotPassword,
+  forgotPassword, 
 } = require("../../controller/user/user.controller");
 const {
   getTotalTransporter,
+  deleteTransporter
 } = require("../../controller/admin/admin.controller");
 const {
   getAllDrivers,
@@ -26,4 +27,5 @@ router.route("/transporter/getAllDrivers").get(getAllDrivers);
 router.route("/reset/forgotPassword").post(forgotPassword);
 router.route("/driver/createDriver").post(createDriver);
 router.route("/download/driversDataFile").get(downloadDriverFile);
+router.route("/admin/deleteTransporter/:id").put(deleteTransporter);
 module.exports = router;

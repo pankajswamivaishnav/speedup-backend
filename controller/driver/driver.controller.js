@@ -80,7 +80,7 @@ exports.downloadDriverFile = catchAsyncHandler(async (req, res, next) => {
 exports.getAllDrivers = catchAsyncHandler(async (req, res, next) => {
   const drivers = await Driver.find();
   if (!drivers) {
-    return next("not driver found", 404);
+    return next("no driver found", 404);
   }
   res.status(200).json({
     success: true,

@@ -3,6 +3,7 @@ const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const { type } = require("os");
 const transporterSchema = new mongoose.Schema({
   transportName: {
     type: String,
@@ -90,7 +91,11 @@ const transporterSchema = new mongoose.Schema({
       required: true,
     },
   },
-
+  isDeleted : {
+    type:Boolean,
+    required:true,
+    default:false
+  },
   resetPasswordTokens: "String",
   resetPasswordExpire: "Date",
 });
