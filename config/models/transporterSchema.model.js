@@ -96,6 +96,12 @@ const transporterSchema = new mongoose.Schema({
     required:true,
     default:false
   },
+  role:{
+    type:String,
+    enum:['super_admin', 'transporter', 'driver', 'vendor'],
+    required:true,
+    default:'transporter'
+  },
   resetPasswordTokens: "String",
   resetPasswordExpire: "Date",
 });

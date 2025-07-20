@@ -10,7 +10,6 @@ const moment = require("moment");
 exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
   // let TransportId = await genTransportId(req.body.mobileNumber);
   // console.log("Generated Transport ID:", TransportId);
-
   const {
     transportName,
     transporter_first_name,
@@ -28,6 +27,7 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     country,
     password,
     faithLine,
+    role
   } = req.body;
   const transporterProfile = await Transporter.create({
     transportName,
@@ -46,6 +46,7 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     state,
     country,
     password,
+    role,
     avatar: {
       public_id: "sample id",
       url: "profileUrl",
@@ -99,6 +100,7 @@ exports.updateTransporter = catchAsyncHandler(async (req, res, next) => {
     state,
     country,
     faithLine,
+    role,
   } = req.body;
   const user = await User.findById({ _id: id });
   if (!user) {
@@ -118,6 +120,7 @@ exports.updateTransporter = catchAsyncHandler(async (req, res, next) => {
     (user.panCardNumber = panCardNumber || user.panCardNumber),
     (user.gstNumber = gstNumber || user.gstNumber),
     (user.transportAddress = transportAddress || user.transportAddress);
+    (user.role = role || user.role);
   const isUpdateTransporter = await user.save();
   if (!isUpdateTransporter) {
     return next(new ErrorHandler("Transporter not updated", 404));
