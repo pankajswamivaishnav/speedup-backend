@@ -26,6 +26,11 @@ const vendorSchema = new mongoose.Schema({
     default: "INDIA",
     required: true,
   },
+  isDeleted : {
+    type:Boolean,
+    required:true,
+    default:false
+  }
 });
 
 module.exports = new mongoose.model("Vendors", vendorSchema);

@@ -6,59 +6,57 @@ const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
 
 // Make Bilty
-exports.biltyDataSave = catchAsyncHandler(async (req, res, next) => {
+exports.bilty = catchAsyncHandler(async (req, res, next) => {
+  const id = req.user._id
+  const gst = req.user.gstNumber 
   const {
-    gstNumber,
-    registrationNumber,
-    mobileNumber,
+    transporterNumber,
     truckNumber,
     driverName,
-    fromWhere,
-    whereTo,
+    from,
+    to,
     brokingCharge,
     date,
-    month,
     driverPhoneNumber,
-    senderInformation: { senderName, senderAddress, senderNumber },
-    receiverInformation: { receiverName, receiverAddress, receiverNumber },
+    senderName,
+    senderNumber,
+    receiverName,
+    receiverNumber,
     goodsCategory,
     weight,
     truckCharge,
-    advanceCharge,
-    remainingCharge,
+    remainingPayment,
+    advancePayment,
     paymentType,
-    biltyNumber,
   } = req.body;
-  const formatedDate = moment(date).format("YYYY-MM-DD");
+  console.log("req.body", req.body)
+  const formatedDate = moment(date).format("YYYY-MM-DD, hh:mm");
   const biltyData = await BiltyInfo.create({
-    gstNumber,
-    registrationNumber,
-    mobileNumber,
-    truckNumber,
-    fromWhere,
-    whereTo,
+    transportId:id,
+    gstNumber:gst,
+    registrationNumber:req.user.registrationNumber,
+    transporterNumber,
+    truckNumber:truckNumber.toLowerCase(),
+    from,
+    to,
     formatedDate,
-    month,
     brokingCharge,
     driverPhoneNumber,
-    driverName,
-    senderInformation: {
-      name: senderName,
-      address: senderAddress,
-      senderNumber: senderNumber,
+    driverName:driverName.toLowerCase(),
+    senderInformation:{
+      name: senderName.toLowerCase(),
+      number: senderNumber,
     },
     receiverInformation: {
-      name: receiverName,
-      address: receiverAddress,
-      receiverNumber: receiverNumber,
+      name: receiverName.toLowerCase(),
+      number: receiverNumber,
     },
     goodsCategory,
     weight,
     truckCharge,
-    advanceCharge,
-    remainingCharge,
-    paymentType,
-    biltyNumber,
+    advancePayment,
+    remainingPayment,
+    paymentType
   });
 
   if (!biltyData) {
@@ -73,11 +71,31 @@ exports.biltyDataSave = catchAsyncHandler(async (req, res, next) => {
 
 // Get All Biltis data
 exports.getAllBiltis = catchAsyncHandler(async (req, res, next) => {
-  const allBiltis = await BiltyInfo.find();
+  const role = req.user.role;
+  const page = req.query.page;
+  const limit = req.query.limit;
+  const skip = page*limit;
+  let allBiltis, totalBilties;
+  switch(role){
+    case 'super_admin' : {
+      totalBilties = await BiltyInfo.countDocuments({ isDeleted: false });
+      if(page == 0 && limit == 0){
+      allBiltis = await BiltyInfo.find({isDeleted:false});
+      }else{
+        allBiltis = await BiltyInfo.find({isDeleted:false}).skip(skip).limit(limit);
+      }
+      break;
+    }
+    case 'transporter' : {
+      allBiltis = await BiltyInfo.find({transportId:req.user._id, isDeleted:false}).skip(skip).limit(limit);
+      break;
+    }
+  }
+  const totalBilty = await BiltyInfo.countDocuments()
   res.status(200).json({
     success: true,
-    allBiltis,
-    totalBilty: allBiltis.length,
+    data:allBiltis,
+    total: totalBilties,
   });
 });
 

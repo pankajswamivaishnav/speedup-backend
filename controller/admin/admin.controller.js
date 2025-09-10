@@ -2,7 +2,6 @@ const Transporter = require("../../config/models/transporterSchema.model");
 const User = require("../../config/models/transporterSchema.model");
 const Bilty = require("../../config/models/bilty.model");
 // Middleware & Utils Error
-const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
 
 // Get Total Transporter
@@ -10,9 +9,15 @@ exports.getTotalTransporter = catchAsyncHandler(async (req, res, next) => {
   const page = req.query.page;
   const limit = req.query.limit;
   const skip = page*limit;
+  let totalTransporter;
   const totalUsers = await User.countDocuments({ isDeleted: false });
-  const totalTransporter = await User.find({isDeleted:false}).skip(skip||0).limit(limit||1);
+  if(page == 0 && limit == 0){
+   totalTransporter = await User.find({isDeleted:false});
+  }else{
+    totalTransporter = await User.find({isDeleted:false}).skip(skip||0).limit(limit||1);
+  }
   res.status(200).json({
+    success:true,
     data: totalTransporter,
     total: totalUsers,
   });

@@ -3,16 +3,17 @@ const router = express.Router();
 
 // Import Controller Functions
 const {
-  biltyDataSave,
+  bilty,
   getAllBiltis,
   getAllBiltyBySingleDriver,
   downloadAllBiltyData,
   getAllBiltyByMonth,
   getBiltyByDate,
 } = require("../../controller/bilty/bilty.controller");
+const passport = require("passport");
 
-router.route("/make/bilty").post(biltyDataSave);
-router.route("/transporter/getAllBiltis").get(getAllBiltis);
+router.post("/bilty", passport.authenticate("jwt", {session:false}), bilty)
+router.get("/getAllBilties", passport.authenticate("jwt", {session:false}), getAllBiltis)
 router
   .route("/transporter/getAllBiltisByDriver/:id")
   .get(getAllBiltyBySingleDriver);

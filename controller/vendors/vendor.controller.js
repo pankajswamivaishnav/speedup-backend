@@ -24,3 +24,24 @@ exports.createVendor = catchAsyncHandler(async (req, res, next) => {
     message: "Vendor created successfully",
   });
 });
+
+// get all vendors
+exports.getTotalVendors = catchAsyncHandler(async(req, res, next)=>{
+  const page = req.query.page;
+  const limit = req.query.limit;
+  const skip = page*limit;
+
+  let totalVendors;
+  const totalUsers = await Vendor.countDocuments({ isDeleted: false });
+
+  if(page == 0 && limit == 0){
+    totalVendors = await Vendor.find({isDeleted:false});
+   }else{
+    totalVendors = await Vendor.find({isDeleted:false}).skip(skip||0).limit(limit||1);
+   }
+   res.status(200).json({
+     success:true,
+     data: totalVendors,
+     total: totalUsers,
+   });
+})

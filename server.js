@@ -1,14 +1,11 @@
-const dotenv = require("dotenv");
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 8000;
 // middleware Function Import
 const errorMiddleware = require("./utils/errMessage");
-dotenv.config({ path: "./config/.env" });
 // Database connection
 require("./config/db/transport.db");
 const cors = require("cors");
-
 // Import Third Party Libraries
 const cookieParser = require("cookie-parser");
 // Import Route
@@ -29,12 +26,8 @@ app.use("/api/v1", Transport);
 app.use("/api/v1", BiltyRoute);
 app.use("/api/v1", DriverRoute);
 app.use("/api/v1", VendorRoute);
-app.use("/api/v1", AuthRoute);
+app.use("/api/v1", AuthRoute);;
 app.use(errorMiddleware);
-
-app.get("/", (req, res) => {
-  res.send("Welcome");
-});
 
 // Listening on port
 app.listen(port, (error, result) => {

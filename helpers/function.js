@@ -1,6 +1,8 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
+const { JWT_SECRET } = require('../config/config');
+
 exports.genTransportId = async (id) => {
   try {
     const generetedId = moment().format("YYYY-MM-DD").split("-").join("") + id;
@@ -11,8 +13,8 @@ exports.genTransportId = async (id) => {
   }
 };
 
-function generateToken(payload, expiresIn = "1h") {
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
+function generateToken(payload, expiresIn = "1d") {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
 module.exports = { generateToken };

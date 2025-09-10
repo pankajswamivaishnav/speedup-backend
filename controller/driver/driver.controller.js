@@ -4,15 +4,18 @@ const excelJs = require("exceljs");
 // Middleware & Utils ErrorDriver
 const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
+const Transporter = require("../../config/models/transporterSchema.model");
 
 // Create Driver
 exports.createDriver = catchAsyncHandler(async (req, res, next) => {
-  const { driverName, driverPhoneNumber, licenseNumber, address } = req.body;
+  const { driverName, driverPhoneNumber, licenseNumber, address, transportId, truckNumber } = req.body;
   const createSuccessfullyDrive = await Driver.create({
     driverName,
     driverPhoneNumber,
+    truckNumber,
     licenseNumber,
     address,
+    transportId
   });
   if (!createSuccessfullyDrive) {
     return next("Not Create Driver", 404);
@@ -78,13 +81,28 @@ exports.downloadDriverFile = catchAsyncHandler(async (req, res, next) => {
 
 // Get All Drivers
 exports.getAllDrivers = catchAsyncHandler(async (req, res, next) => {
-  const drivers = await Driver.find();
+  const role = req.user.role;
+  const page = req.query.page;
+  const limit = req.query.limit;
+  const skip = page*limit
+  let drivers;
+  switch(role){
+    case 'super_admin' : {
+        drivers = await Driver.find().skip(skip).limit(limit);
+       break;
+    }
+    case 'transporter' :{
+      drivers = await Driver.find({transportId:req.user._id}).skip(skip).limit(limit);
+      break;
+    }
+  }
+  const totalDrivers = await Driver.countDocuments({isDeleted:false})
   if (!drivers) {
     return next("no driver found", 404);
   }
   res.status(200).json({
     success: true,
     data: drivers,
-    totalDrivers: drivers.length,
+    total: totalDrivers,
   });
 });

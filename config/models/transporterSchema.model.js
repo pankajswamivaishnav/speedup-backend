@@ -119,14 +119,6 @@ transporterSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-// Genrate Token For Authentication
-transporterSchema.methods.genJWTToken = function () {
-  const token = jwt.sign({ id: this._id }, "iampankajswamivaishnav7073272134", {
-    expiresIn: "1h",
-  });
-  return token;
-};
-
 // Genrate Token Method For Reset Password
 transporterSchema.methods.genResetPasswordToken = function () {
   // Token for Reset Password

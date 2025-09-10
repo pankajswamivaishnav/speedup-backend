@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const passport = require("passport");
 
 // Import Controller Functions
 const {
@@ -22,7 +23,7 @@ router.route("/register/transporter").post(registerTransporter);
 router.route("/login/transporter").get(loginTransporter);
 router.route("/update/transporter/:id").put(updateTransporter);
 router.route("/update/transporter/password/:id").put(updateTransporterPassword);
-router.route("/admin/totalTransporter").get(getTotalTransporter);
+router.get("/admin/totalTransporter",passport.authenticate("jwt", {session:false}),getTotalTransporter)
 router.route("/transporter/getAllDrivers").get(getAllDrivers);
 router.route("/reset/forgotPassword").post(forgotPassword);
 router.route("/driver/createDriver").post(createDriver);

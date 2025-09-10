@@ -1,21 +1,7 @@
 const mongoose = require("mongoose");
 const moment = require("moment");
 const Transporter = require("../models/transporterSchema.model");
-const monthNames = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-const month = monthNames[new Date().getMonth()];
+
 const biltySchema = new mongoose.Schema({
   transportId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -30,7 +16,7 @@ const biltySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  mobileNumber: {
+  transporterNumber: {
     type: Number,
     required: true,
   },
@@ -39,11 +25,11 @@ const biltySchema = new mongoose.Schema({
     trim: true,
     required: true,
   },
-  fromWhere: {
+  from: {
     type: String,
     required: true,
   },
-  whereTo: {
+  to: {
     type: String,
     required: true,
   },
@@ -56,19 +42,15 @@ const biltySchema = new mongoose.Schema({
     required: true,
   },
   date: {
-    type: String,
-    default: moment().format("YYYY-MM-DD"),
+    type: Date,
+    default: moment().format("YYYY-MM-DD, hh:mm"),
   },
   senderInformation: {
     name: {
       type: String,
       required: true,
     },
-    address: {
-      type: String,
-      required: true,
-    },
-    senderNumber: {
+    number: {
       type: Number,
       required: true,
     },
@@ -78,11 +60,7 @@ const biltySchema = new mongoose.Schema({
       type: String,
       required: true,
     },
-    address: {
-      type: String,
-      required: true,
-    },
-    receiverNumber: {
+    number: {
       type: Number,
       required: true,
     },
@@ -99,11 +77,11 @@ const biltySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  advanceCharge: {
+  advancePayment: {
     type: String,
     required: true,
   },
-  remainingCharge: {
+  remainingPayment: {
     type: String,
     required: true,
   },
@@ -120,13 +98,47 @@ const biltySchema = new mongoose.Schema({
   biltyNumber: {
     type: String,
     unique: true,
-    required: true,
+    default:"",
   },
-  month: {
-    type: String,
-    required: true,
-    default: month,
-  },
+  isDeleted:{
+    type:Boolean,
+    default:false,
+    required:true
+  }
+},{
+  versionKey:false
+});
+
+// ✅ Auto-generate biltyNumber based on transportId
+biltySchema.pre("save", async function (next) {
+  const bilty = this;
+
+  if (bilty.isNew && !bilty.biltyNumber) {
+    try {
+      const lastBilty = await mongoose.model("BiltyInfo").findOne({
+        transportId: bilty.transportId,
+      })
+      .sort({ _id: -1 }) // latest entry
+      .select("biltyNumber");
+
+      let nextCount = 1;
+
+      if (lastBilty && lastBilty.biltyNumber) {
+        const parts = lastBilty.biltyNumber.split("-");
+        const lastNumber = parseInt(parts[1], 10);
+        if (!isNaN(lastNumber)) {
+          nextCount = lastNumber + 1;
+        }
+      }
+
+      bilty.biltyNumber = `${bilty.transportId.toString()}-${nextCount}`;
+      next();
+    } catch (error) {
+      return next(error);
+    }
+  } else {
+    next();
+  }
 });
 
 module.exports = mongoose.model("BiltyInfo", biltySchema);

@@ -10,6 +10,10 @@ const driverSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  truckNumber:{
+    type:String,
+    required:true,
+  },
   address: {
     type: String,
     required: true,
@@ -20,6 +24,17 @@ const driverSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  transportId:{
+    type:mongoose.Types.ObjectId,
+    ref:"Transporter"
+  },
+  isDeleted:{
+    type:Boolean,
+    default:false
+  }
+ 
+},{
+  versionKey:false
 });
 
 module.exports = new mongoose.model("Driver", driverSchema);
