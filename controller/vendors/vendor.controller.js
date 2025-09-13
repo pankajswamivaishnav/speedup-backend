@@ -11,13 +11,32 @@ exports.createVendor = catchAsyncHandler(async (req, res, next) => {
     vendorAddress,
     vendorBussiness,
     vendorSecondaryPhoneNumber,
+    vendorEmail,
+    pinCode,
+    city,
+    state,
+    country,
+    password,
+    role,
+    avatar,
   } = req.body;
+
+  
+
   await Vendor.create({
     vendorName,
     vendorPhoneNumber,
     vendorAddress,
     vendorBussiness,
     vendorSecondaryPhoneNumber,
+    vendorEmail,
+    pinCode,
+    city,
+    state,
+    country,
+    password,
+    role,
+    avatar,
   });
   res.status(200).json({
     success: true,
