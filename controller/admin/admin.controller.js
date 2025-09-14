@@ -8,13 +8,22 @@ const catchAsyncHandler = require("../../middleware/catchAsyncError");
 exports.getTotalTransporter = catchAsyncHandler(async (req, res, next) => {
   const page = req.query.page;
   const limit = req.query.limit;
+  const searchQuery = req.query.filter;
   const skip = page*limit;
+
+  
   let totalTransporter;
-  const totalUsers = await User.countDocuments({ isDeleted: false });
+  // ---- query search and make common filter query ----
+  let filter = { isDeleted: false };
+  if (searchQuery && searchQuery !== 'undefined') {
+    filter.transportName = { $regex: searchQuery, $options: 'i' };
+  }
+  
+  const totalUsers = await User.countDocuments(filter);
   if(page == 0 && limit == 0){
-   totalTransporter = await User.find({isDeleted:false});
+   totalTransporter = await User.find(filter);
   }else{
-    totalTransporter = await User.find({isDeleted:false}).skip(skip||0).limit(limit||1);
+    totalTransporter = await User.find(filter).skip(skip||0).limit(limit||10);
   }
   res.status(200).json({
     success:true,
