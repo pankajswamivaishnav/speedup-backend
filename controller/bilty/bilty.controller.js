@@ -75,23 +75,28 @@ exports.getAllBiltis = catchAsyncHandler(async (req, res, next) => {
   const page = req.query.page;
   const limit = req.query.limit;
   const skip = page*limit;
+  const searchQuery = req.query.filter;
   let allBiltis, totalBilties;
+  let filter = { isDeleted: false };
+  if (searchQuery && searchQuery !== 'undefined') {
+    filter.biltyNumber = { $regex: searchQuery, $options: 'i' };
+  }  
   switch(role){
     case 'super_admin' : {
-      totalBilties = await BiltyInfo.countDocuments({ isDeleted: false });
+      totalBilties = await BiltyInfo.countDocuments(filter);
       if(page == 0 && limit == 0){
-      allBiltis = await BiltyInfo.find({isDeleted:false});
+      allBiltis = await BiltyInfo.find(filter);
       }else{
-        allBiltis = await BiltyInfo.find({isDeleted:false}).skip(skip).limit(limit);
+        allBiltis = await BiltyInfo.find(filter).skip(skip).limit(limit);
       }
       break;
     }
     case 'transporter' : {
-      allBiltis = await BiltyInfo.find({transportId:req.user._id, isDeleted:false}).skip(skip).limit(limit);
+      allBiltis = await BiltyInfo.find({transportId:req.user._id, filter}).skip(skip).limit(limit);
       break;
     }
   }
-  const totalBilty = await BiltyInfo.countDocuments()
+  const totalBilty = await BiltyInfo.countDocuments(filter)
   res.status(200).json({
     success: true,
     data:allBiltis,

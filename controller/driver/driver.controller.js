@@ -85,18 +85,24 @@ exports.getAllDrivers = catchAsyncHandler(async (req, res, next) => {
   const page = req.query.page;
   const limit = req.query.limit;
   const skip = page*limit
+  const searchQuery = req.query.filter;
+
   let drivers;
+  let filter = { isDeleted: false };
+  if (searchQuery && searchQuery !== 'undefined') {
+    filter.driverName = { $regex: searchQuery, $options: 'i' };
+  }
   switch(role){
     case 'super_admin' : {
-        drivers = await Driver.find().skip(skip).limit(limit);
+        drivers = await Driver.find(filter).skip(skip).limit(limit);
        break;
     }
     case 'transporter' :{
-      drivers = await Driver.find({transportId:req.user._id}).skip(skip).limit(limit);
+      drivers = await Driver.find({transportId:req.user._id, filter}).skip(skip).limit(limit);
       break;
     }
   }
-  const totalDrivers = await Driver.countDocuments({isDeleted:false})
+  const totalDrivers = await Driver.countDocuments(filter)
   if (!drivers) {
     return next("no driver found", 404);
   }
