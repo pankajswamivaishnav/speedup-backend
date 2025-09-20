@@ -2,18 +2,23 @@ const mongoose = require("mongoose");
 const passwordPlugin = require("../../helpers/passwordPlugin")
 
 const vendorSchema = new mongoose.Schema({
-  vendorName: {
+  first_name: {
     type: String,
     required: true,
     trim: true,
   },
-  vendorPhoneNumber: {
+  last_name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  mobileNumber: {
     type: Number,
     unique: true,
     required: true,
     trim: true,
   },
-  vendorEmail:{
+  email:{
     type:String,
     default:"vendor@yopmail.com"
   },
@@ -21,12 +26,12 @@ const vendorSchema = new mongoose.Schema({
     type: Number,
     trim: true,
   },
-  vendorBussiness: {
+  business: {
     type: String,
     required: true,
     trim: true,
   },
-  vendorAddress: {
+  address: {
     type: String,
     default: "INDIA",
     required: true,
@@ -52,7 +57,6 @@ const vendorSchema = new mongoose.Schema({
     },
     url: {
       type: "String",
-      required: true,
     },
   },
   isDeleted : {
@@ -60,7 +64,7 @@ const vendorSchema = new mongoose.Schema({
     required:true,
     default:false
   }
-});
+},{versionKey:false});
 
 vendorSchema.plugin(passwordPlugin);
 

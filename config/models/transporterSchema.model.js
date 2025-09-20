@@ -88,7 +88,6 @@ const transporterSchema = new mongoose.Schema({
     },
     url: {
       type: "String",
-      required: true,
     },
   },
   isDeleted : {
@@ -104,7 +103,7 @@ const transporterSchema = new mongoose.Schema({
   },
   resetPasswordTokens: "String",
   resetPasswordExpire: "Date",
-});
+},{versionKey:false});
 
 // Hashing algorithm for password
 transporterSchema.pre("save", async function (next) {

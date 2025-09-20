@@ -2,23 +2,36 @@ const Driver = require("../../config/models/driver.model");
 const BiltyInfo = require("../../config/models/bilty.model");
 const excelJs = require("exceljs");
 // Middleware & Utils ErrorDriver
-const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
+const DriverCard = require("../../config/models/driverCard.model");
 
 // Create Driver
 exports.createDriver = catchAsyncHandler(async (req, res, next) => {
-  const { driverName, driverPhoneNumber, licenseNumber, address, transportId, truckNumber } = req.body;
+  const { first_name,last_name, mobileNumber, licenseNumber, address, transportId, truckNumber, password } = req.body;
   const createSuccessfullyDrive = await Driver.create({
-    driverName,
-    driverPhoneNumber,
+    first_name,
+    last_name,
+    mobileNumber,
     truckNumber,
     licenseNumber,
+    password,
     address,
     transportId
   });
+  
   if (!createSuccessfullyDrive) {
     return next("Not Create Driver", 404);
   }
+
+   await DriverCard.create({
+    first_name,
+    last_name,
+    mobileNumber,
+    truckNumber,
+    licenseNumber,
+    address
+  })
+ 
   res.status(201).json({
     success: true,
     createSuccessfullyDrive,

@@ -2,16 +2,18 @@ const Vendor = require("../../config/models/vendors.models");
 // Middleware & Utils Error
 const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
+const vendorCardModel = require("../../config/models/vendorCard.model");
 
 // Create Vendors
 exports.createVendor = catchAsyncHandler(async (req, res, next) => {
   const {
-    vendorName,
-    vendorPhoneNumber,
-    vendorAddress,
-    vendorBussiness,
+    first_name,
+    last_name,
+    mobileNumber,
+    address,
+    business,
     vendorSecondaryPhoneNumber,
-    vendorEmail,
+    email,
     pinCode,
     city,
     state,
@@ -22,12 +24,13 @@ exports.createVendor = catchAsyncHandler(async (req, res, next) => {
   } = req.body;
 
   await Vendor.create({
-    vendorName,
-    vendorPhoneNumber,
-    vendorAddress,
-    vendorBussiness,
+    first_name,
+    last_name,
+    mobileNumber,
+    address,
+    business,
     vendorSecondaryPhoneNumber,
-    vendorEmail,
+    email,
     pinCode,
     city,
     state,
@@ -36,6 +39,18 @@ exports.createVendor = catchAsyncHandler(async (req, res, next) => {
     role,
     avatar,
   });
+
+   await vendorCardModel.create({
+    first_name,
+    last_name,
+    mobileNumber,
+    address,
+    business,
+    email,
+    city,
+    avatar
+   })
+  
   res.status(200).json({
     success: true,
     message: "Vendor created successfully",
@@ -52,7 +67,10 @@ exports.getTotalVendors = catchAsyncHandler(async(req, res, next)=>{
   let totalVendors;
   let filter = { isDeleted: false };
   if (searchQuery && searchQuery !== 'undefined') {
-    filter.vendorName = { $regex: searchQuery, $options: 'i' };
+    filter.$or = [
+      {first_name:{ $regex: searchQuery, $options: 'i' }},
+      {last_name:{ $regex: searchQuery, $options: 'i' }}
+    ]
   }
   const totalUsers = await Vendor.countDocuments(filter);
 

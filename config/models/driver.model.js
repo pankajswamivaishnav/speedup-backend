@@ -1,11 +1,17 @@
 const mongoose = require("mongoose");
+const passwordPlugin = require("../../helpers/passwordPlugin");
 const driverSchema = new mongoose.Schema({
-  driverName: {
+  first_name: {
     type: String,
     required: true,
     trim: true,
   },
-  driverPhoneNumber: {
+  last_name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  mobileNumber: {
     type: Number,
     required: true,
     trim: true,
@@ -28,6 +34,10 @@ const driverSchema = new mongoose.Schema({
     type:mongoose.Types.ObjectId,
     ref:"Transporter"
   },
+  password:{
+    type:String,
+    required:true
+  },
   isDeleted:{
     type:Boolean,
     default:false
@@ -36,5 +46,7 @@ const driverSchema = new mongoose.Schema({
 },{
   versionKey:false
 });
+
+driverSchema.plugin(passwordPlugin);
 
 module.exports = new mongoose.model("Driver", driverSchema);

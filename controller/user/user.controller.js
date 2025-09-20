@@ -5,11 +5,9 @@ const catchAsyncHandler = require("../../middleware/catchAsyncError");
 const setCookieToken = require("../../utils/cookieToken");
 const sendEmail = require("../../utils/sendEmail");
 const moment = require("moment");
-// const { genTransportId } = require("../../helpers/function");
+const transportCardModel = require("../../config/models/transportCard.model");
 //Register Transporter
 exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
-  // let TransportId = await genTransportId(req.body.mobileNumber);
-  // console.log("Generated Transport ID:", TransportId);
   const {
     transportName,
     transporter_first_name,
@@ -27,7 +25,8 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     country,
     password,
     faithLine,
-    role
+    role,
+    avatar,
   } = req.body;
   const transporterProfile = await Transporter.create({
     transportName,
@@ -47,16 +46,26 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     country,
     password,
     role,
-    avatar: {
-      public_id: "sample id",
-      url: "profileUrl",
-    },
+   avatar,
     createdAt: moment().format("YYYY-MM-DD"),
   });
 
   if (!transporterProfile) {
     return next(new ErrorHandler("Transporter Not Register ", 404));
   }
+
+  await transportCardModel.create({
+    first_name:transporter_first_name,
+    last_name:transporter_last_name,
+    email,
+    mobileNumber,
+    officeNumber,
+    transportName,
+    city,
+    address:transportAddress,
+    avatar
+  })
+
   setCookieToken(
     transporterProfile,
     201,
