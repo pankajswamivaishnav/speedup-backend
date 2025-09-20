@@ -4,7 +4,6 @@ const excelJs = require("exceljs");
 // Middleware & Utils ErrorDriver
 const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
-const Transporter = require("../../config/models/transporterSchema.model");
 
 // Create Driver
 exports.createDriver = catchAsyncHandler(async (req, res, next) => {

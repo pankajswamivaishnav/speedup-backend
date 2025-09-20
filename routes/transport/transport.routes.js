@@ -19,6 +19,7 @@ const {
   createDriver,
   downloadDriverFile,
 } = require("../../controller/driver/driver.controller");
+const { createTransportCard, getAllTransportCards } = require("../../controller/user/transportCard.controller");
 router.route("/register/transporter").post(registerTransporter);
 router.route("/login/transporter").get(loginTransporter);
 router.route("/update/transporter/:id").put(updateTransporter);
@@ -29,4 +30,7 @@ router.route("/reset/forgotPassword").post(forgotPassword);
 router.route("/driver/createDriver").post(createDriver);
 router.route("/download/driversDataFile").get(downloadDriverFile);
 router.route("/admin/deleteTransporter/:id").put(deleteTransporter);
+// --------- Transport Card Routes -----------
+router.route("/createTransportCard").post(createTransportCard)
+router.route("/getAllTransportCards").get(getAllTransportCards)
 module.exports = router;
