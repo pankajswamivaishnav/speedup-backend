@@ -3,7 +3,7 @@ const Transporter = require("../../config/models/transporterSchema.model");
 const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
 const setCookieToken = require("../../utils/cookieToken");
-const sendEmail = require("../../utils/sendEmail");
+// const sendEmail = require("../../utils/sendEmail");
 const moment = require("moment");
 const transportCardModel = require("../../config/models/transportCard.model");
 //Register Transporter
@@ -171,36 +171,4 @@ exports.updateTransporterPassword = catchAsyncHandler(
   }
 );
 
-// Forgot Password
-exports.forgotPassword = catchAsyncHandler(async (req, res, next) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email: email });
-  if (!user) {
-    return next(new ErrorHandler("this email does not exist", 404));
-  }
-  // Get Reset Password From Schema Function
-  const resetToken = user.genResetPasswordToken();
-  await user.save({ validateBeforeSave: true });
 
-  // Make Url Who's Send On Email
-  const resetPasswordLink = `${req.protocol}://${req.get(
-    "host"
-  )}/password/reset/${resetToken}`;
-  const message = ` Your reset password token is : - \n\n  ${resetPasswordLink}\n\n If you have not requested so please ignore it`;
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: "Your Password Reset",
-      message: message,
-    });
-    res.status(200).json({
-      success: true,
-      message: `Email Sent successfully On ${user.email}`,
-    });
-  } catch (error) {
-    user.resetPasswordTokens = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save({ validateBeforeSave: false });
-    return next(new ErrorHandler(error.message, 500));
-  }
-});

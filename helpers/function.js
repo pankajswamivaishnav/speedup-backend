@@ -29,4 +29,5 @@ exports.comparePassword = async(plainPassword, hashedPassword) => {
 }
 
 
+
 module.exports = { generateToken };

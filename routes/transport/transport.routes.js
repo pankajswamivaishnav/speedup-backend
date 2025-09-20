@@ -8,7 +8,7 @@ const {
   loginTransporter,
   updateTransporter,
   updateTransporterPassword,
-  forgotPassword, 
+  // forgotPassword, 
 } = require("../../controller/user/user.controller");
 const {
   getTotalTransporter,
@@ -26,7 +26,7 @@ router.route("/update/transporter/:id").put(updateTransporter);
 router.route("/update/transporter/password/:id").put(updateTransporterPassword);
 router.get("/admin/totalTransporter",passport.authenticate("jwt", {session:false}),getTotalTransporter)
 router.route("/transporter/getAllDrivers").get(getAllDrivers);
-router.route("/reset/forgotPassword").post(forgotPassword);
+// router.route("/reset/forgotPassword").post(forgotPassword);
 router.route("/driver/createDriver").post(createDriver);
 router.route("/download/driversDataFile").get(downloadDriverFile);
 router.route("/admin/deleteTransporter/:id").put(deleteTransporter);

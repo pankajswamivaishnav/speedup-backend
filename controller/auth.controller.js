@@ -1,8 +1,11 @@
 const catchAsyncHandler = require("../middleware/catchAsyncError");
 const Transporter = require("../config/models/transporterSchema.model");
+const Vendor = require("../config/models/vendors.models");
+const Driver = require("../config/models/driver.model");
 const setCookieToken = require("../utils/cookieToken");
 const ErrorHandler = require("../utils/errorHandler");
 const constants = require("../helpers/constants");
+const sendEmail = require("../utils/sendEmail")
 // Login Transporter
 const login = catchAsyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
@@ -43,4 +46,48 @@ const me = catchAsyncHandler(async (req, res) => {
   setCookieToken(user, 200, "me", res);
 });
 
-module.exports = { login, me };
+// Forgot Password
+forgotPassword = catchAsyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+  const [transporter, vendor, driver] = await Promise.all([
+    Transporter.findOne({email:email}),
+    Vendor.findOne({email:email}),
+    Driver.findOne({email:email})
+  ])
+  const user = transporter || vendor || driver
+  if (!user) {
+    return next(new ErrorHandler("this email does not exist", 404));
+  }
+  // Get Reset Password From Schema Function
+  const resetToken = user.genResetPasswordToken();
+  await user.save({ validateBeforeSave: true });
+
+  // Make Url Who's Send On Email
+  const resetPasswordLink = `${process.env.FRONTEND_URL}/password/reset/${resetToken}`;
+  try {
+    const templateData = {
+      title: 'Password Reset Request',
+      greeting: "Pankaj Swami Vaishnav",
+      message: 'We received a request to reset your password. Click the button below to create a new password. This link will expire in 24 hours for security reasons.',
+      buttonText: 'Change Password',
+      buttonUrl: `${resetPasswordLink}`,
+      additionalInfo: 'If you didn\'t request this password reset, please ignore this email. Your password will remain unchanged.'
+  };
+    await sendEmail({
+      email: user.email,
+      subject: "Your Password Reset",
+      templateData
+    });
+    res.status(200).json({
+      success: true,
+      message: `Email Sent successfully On ${user.email}`,
+    });
+  } catch (error) {
+    user.resetPasswordTokens = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save({ validateBeforeSave: false });
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+module.exports = { login, me, forgotPassword };

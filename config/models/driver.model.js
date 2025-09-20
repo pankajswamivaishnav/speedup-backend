@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const passwordPlugin = require("../../helpers/passwordPlugin");
+const {passwordPlugin, resetPasswordTokenPlugin} = require("../../helpers/passwordPlugin");
 const driverSchema = new mongoose.Schema({
   first_name: {
     type: String,
@@ -48,5 +48,7 @@ const driverSchema = new mongoose.Schema({
 });
 
 driverSchema.plugin(passwordPlugin);
+driverSchema.plugin(resetPasswordTokenPlugin);
+
 
 module.exports = new mongoose.model("Driver", driverSchema);

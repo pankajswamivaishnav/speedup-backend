@@ -1,9 +1,8 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { type } = require("os");
+const {resetPasswordTokenPlugin, passwordPlugin} = require("../../helpers/passwordPlugin")
 const transporterSchema = new mongoose.Schema({
   transportName: {
     type: String,
@@ -104,6 +103,11 @@ const transporterSchema = new mongoose.Schema({
   resetPasswordTokens: "String",
   resetPasswordExpire: "Date",
 },{versionKey:false});
+
+
+// Use plugin
+transporterSchema.plugin(passwordPlugin);
+transporterSchema.plugin(resetPasswordTokenPlugin);
 
 // Hashing algorithm for password
 transporterSchema.pre("save", async function (next) {

@@ -2,7 +2,6 @@ const TransportCard = require("../../config/models/transportCard.model")
 // Middleware & Utils Error
 const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
-const setCookieToken = require("../../utils/cookieToken");
 //Register Transporter
 exports.createTransportCard = catchAsyncHandler(async (req, res, next) => {
   const {
@@ -39,8 +38,7 @@ exports.createTransportCard = catchAsyncHandler(async (req, res, next) => {
   });
 });
 
-// Get All Driver Cards
-// Get Vendor Cards
+// Get Transport Cards
 exports.getAllTransportCards = catchAsyncHandler(async(req, res, ) => {
 
   const searchQuery = req.query.filter;

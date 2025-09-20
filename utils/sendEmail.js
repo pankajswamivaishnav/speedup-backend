@@ -1,5 +1,8 @@
 const nodemailer = require("nodemailer");
+const ejs = require('ejs');
+const path = require('path');
 const sendEmail = async (options) => {
+  
   // Create Transport
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -9,13 +12,17 @@ const sendEmail = async (options) => {
     },
   });
 
+  const templatePath = path.join(__dirname, '../templates/email-template.ejs');
+  const html = await ejs.renderFile(templatePath, options.templateData || {});
+
   const mailOptions = {
-    from: process.env.EMAIL_USERNAME,
+    from: `"Speed Up" <${process.env.EMAIL_USERNAME}>`,
     to: options.email,
-    subject: options.subject,
-    text: options.message,
+    subject: options.subject ||  'Speed Up Notification',
+    html: html
+    // text: options.message || 'Speed Up Notification',
   };
-  await transporter.sendMail(mailOptions);
+ await transporter.sendMail(mailOptions);
 };
 
 module.exports = sendEmail;

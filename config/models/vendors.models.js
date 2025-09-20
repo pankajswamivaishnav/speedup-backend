@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const passwordPlugin = require("../../helpers/passwordPlugin")
+const {passwordPlugin, resetPasswordTokenPlugin} = require("../../helpers/passwordPlugin")
 
 const vendorSchema = new mongoose.Schema({
   first_name: {
@@ -67,5 +67,7 @@ const vendorSchema = new mongoose.Schema({
 },{versionKey:false});
 
 vendorSchema.plugin(passwordPlugin);
+vendorSchema.plugin(resetPasswordTokenPlugin);
+
 
 module.exports = new mongoose.model("Vendors", vendorSchema);
