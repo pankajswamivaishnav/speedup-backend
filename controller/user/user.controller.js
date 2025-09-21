@@ -6,6 +6,7 @@ const setCookieToken = require("../../utils/cookieToken");
 // const sendEmail = require("../../utils/sendEmail");
 const moment = require("moment");
 const transportCardModel = require("../../config/models/transportCard.model");
+const sendEmail = require("../../utils/sendEmail");
 //Register Transporter
 exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
   const {
@@ -65,6 +66,24 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     address:transportAddress,
     avatar
   })
+
+
+  const templateData = {
+    title: 'Welcome to Speed Up !',
+    greeting:`${transporter_first_name} ${transporter_last_name}`,
+    message: `We’re excited to have you on board with Speed Up! 🚀  
+  Your account has been created successfully, and you’re all set to start accelerating your success with us.  
+  Click the button below to explore your dashboard and get started.`,
+    buttonText: 'Go to Dashboard',
+    buttonUrl: `http://localhost:3000/dashboard`,
+    additionalInfo: 'If you have any questions or need help, our support team is always here for you.'
+};
+
+  await sendEmail({
+    email:email,
+    subject: "🎉 Welcom to Speed Up ! 🎉",
+    templateData
+  });
 
   setCookieToken(
     transporterProfile,

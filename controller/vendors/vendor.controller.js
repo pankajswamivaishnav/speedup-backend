@@ -3,6 +3,7 @@ const Vendor = require("../../config/models/vendors.models");
 const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
 const vendorCardModel = require("../../config/models/vendorCard.model");
+const sendEmail = require("../../utils/sendEmail");
 
 // Create Vendors
 exports.createVendor = catchAsyncHandler(async (req, res, next) => {
@@ -50,7 +51,7 @@ exports.createVendor = catchAsyncHandler(async (req, res, next) => {
     city,
     avatar
    })
-  
+
   res.status(200).json({
     success: true,
     message: "Vendor created successfully",
