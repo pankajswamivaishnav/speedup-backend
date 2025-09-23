@@ -4,7 +4,7 @@ const moment = require("moment");
 // Middleware & Utils Error
 const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
-
+const DriverCardModel = require("../../config/models/driverCard.model")
 // Make Bilty
 exports.bilty = catchAsyncHandler(async (req, res, next) => {
   const id = req.user._id
@@ -29,7 +29,7 @@ exports.bilty = catchAsyncHandler(async (req, res, next) => {
     advancePayment,
     paymentType,
   } = req.body;
-  console.log("req.body", req.body)
+  
   const formatedDate = moment(date).format("YYYY-MM-DD, hh:mm");
   const biltyData = await BiltyInfo.create({
     transportId:id,
@@ -61,6 +61,17 @@ exports.bilty = catchAsyncHandler(async (req, res, next) => {
 
   if (!biltyData) {
     return next(ErrorHandler("Did Not Save Bilty Data", 404));
+  }
+
+  const driverCard = await DriverCardModel.findOne({mobileNumber:driverPhoneNumber});
+  if(!driverCard){
+   const [first_name, last_name] = driverName.split(" ");
+   await DriverCardModel.create({
+      first_name,
+      last_name,
+      mobileNumber:driverPhoneNumber,
+      truckNumber
+   })
   }
 
   res.status(201).json({

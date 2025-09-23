@@ -55,19 +55,30 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("Transporter Not Register ", 404));
   }
 
-  await transportCardModel.create({
-    first_name:transporter_first_name,
-    last_name:transporter_last_name,
-    email,
-    mobileNumber,
-    officeNumber,
-    transportName,
-    city,
-    address:transportAddress,
-    avatar
+  // ----- Here check card is already have or not ----------
+  const transportCard = await transportCardModel.findOne({
+    $or: [
+      { email: email },
+      { mobileNumber: mobileNumber },
+      { officeNumber: officeNumber }
+    ]
   })
 
-
+  // ------ Create Transporter Card ------
+  if(!transportCard){
+    await transportCardModel.create({
+      first_name:transporter_first_name,
+      last_name:transporter_last_name,
+      email,
+      mobileNumber,
+      officeNumber,
+      transportName,
+      city,
+      address:transportAddress,
+      avatar
+    })
+  }
+ 
   const templateData = {
     title: 'Welcome to Speed Up !',
     greeting:`${transporter_first_name} ${transporter_last_name}`,

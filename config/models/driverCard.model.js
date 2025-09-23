@@ -38,7 +38,6 @@ const driverCardSchema = new mongoose.Schema({
   },
   address: {
     type: String,
-    required: true,
     default: "INDIA",
     trim: true,
   },
