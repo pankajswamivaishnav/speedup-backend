@@ -247,3 +247,22 @@ exports.getBiltyByDate = catchAsyncHandler(async (req, res, next) => {
     data: bilty,
   });
 });
+
+
+// Delete Bilty
+exports.deleteBilty = catchAsyncHandler(async(req, res)=>{
+  const _id = req.params.id;
+
+  const response = await BiltyInfo.findByIdAndUpdate(
+    _id,
+    { isDeleted: true },   
+    { new: true }          
+  );  
+
+  
+  res.status(200).json({
+    success: true,
+    message:"Delete bilty successfully !!",
+    data: response,
+  });
+})

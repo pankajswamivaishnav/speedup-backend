@@ -124,3 +124,21 @@ exports.getAllDrivers = catchAsyncHandler(async (req, res, next) => {
     total: totalDrivers,
   });
 });
+
+// Delete Driver
+exports.deleteDriver = catchAsyncHandler(async(req, res)=>{
+  const _id = req.params.id;
+
+  const response = await Driver.findByIdAndUpdate(
+    _id,
+    { isDeleted: true },   
+    { new: true }          
+  );  
+
+  
+  res.status(200).json({
+    success: true,
+    message:"Delete driver successfully !!",
+    data: response,
+  });
+})

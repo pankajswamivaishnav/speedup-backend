@@ -18,6 +18,7 @@ const passport = require("passport");
 require("./helpers/passport");
 
 // Middlewares
+console.log("insert in to the server.js")
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
@@ -30,7 +31,7 @@ app.use("/api/v1", AuthRoute);;
 app.use(errorMiddleware);
 
 // Listening on port
-app.listen(port, (error, result) => {
+app.listen(port, (error) => {
   if (error) {
     console.log(`listening on port ${error.message}`);
   } else {

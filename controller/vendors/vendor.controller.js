@@ -1,9 +1,7 @@
 const Vendor = require("../../config/models/vendors.models");
 // Middleware & Utils Error
-const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
 const vendorCardModel = require("../../config/models/vendorCard.model");
-const sendEmail = require("../../utils/sendEmail");
 
 // Create Vendors
 exports.createVendor = catchAsyncHandler(async (req, res, next) => {
@@ -85,4 +83,22 @@ exports.getTotalVendors = catchAsyncHandler(async(req, res, next)=>{
      data: totalVendors,
      total: totalUsers,
    });
+})
+
+// Delete Vendor
+exports.deleteVendor = catchAsyncHandler(async(req, res)=>{
+  const _id = req.params.id;
+
+  const response = await Vendor.findByIdAndUpdate(
+    _id,
+    { isDeleted: true },   
+    { new: true }          
+  );  
+
+  
+  res.status(200).json({
+    success: true,
+    message:"Delete vendor successfully !!",
+    data: response,
+  });
 })
