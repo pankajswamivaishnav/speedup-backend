@@ -110,6 +110,29 @@ class EmailService {
             templateData
         });
     }
+
+    // send schedule demo email
+    async sendScheduleDemoEmail(data){
+        const demoData = {
+            title: "New Demo Request Received",
+            message: "A new demo request has been submitted by the user. Please check the details below:",
+            buttonText: "View Request",
+            buttonUrl: `${process.env.FRONTEND_URL}/admin/demo-requests`, 
+            additionalInfo: {
+              userName: `${data.userName}`,       
+              userPhone: `${data.userPhone}`,       
+              requestedDate: `${data.date}`,       
+              requestedTime: `${data.time}`,           
+              submittedAt: new Date().toISOString() 
+            }
+          };
+
+          return this.sendTemplateEmail({
+            to:process.env.EMAIL_USER,
+            subject:"Speed up demo request",
+            demoData
+          })
+    }
 }
 
 module.exports = new EmailService();

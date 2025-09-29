@@ -5,7 +5,9 @@ const Driver = require("../config/models/driver.model");
 const setCookieToken = require("../utils/cookieToken");
 const ErrorHandler = require("../utils/errorHandler");
 const constants = require("../helpers/constants");
-const sendEmail = require("../utils/sendEmail")
+const sendEmail = require("../utils/sendEmail");
+const moment = require("moment");
+
 // Login Transporter
 const login = catchAsyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
@@ -47,7 +49,7 @@ const me = catchAsyncHandler(async (req, res) => {
 });
 
 // Forgot Password
-forgotPassword = catchAsyncHandler(async (req, res, next) => {
+const forgotPassword = catchAsyncHandler(async (req, res, next) => {
   const { email } = req.body;
   const [transporter, vendor, driver] = await Promise.all([
     Transporter.findOne({email:email}),
@@ -90,4 +92,33 @@ forgotPassword = catchAsyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { login, me, forgotPassword };
+// Demo request email
+const demoRequestGet = catchAsyncHandler(async (req, res, next) => {
+  try {
+    const demoData = {
+      title: "New Demo Request Received",
+      greeting: "Admin",   // ✅ add greeting
+      message: "A new demo request has been submitted by the user. Please check the details below:",
+      buttonText: "View Request",
+      buttonUrl: `${process.env.FRONTEND_URL}/admin/demo-requests`,
+      additionalInfo: `User ${req.body.name} with phone number ${req.body.mobileNumber} and email ${req.body.email} has requested a demo on ${moment(req.body.dateTime).format("YYYY-MM-DD")} at ${moment(req.body.dateTime).format("hh:mmA")}.`
+
+    };
+    await sendEmail({
+      email: req.body.email,
+      subject: "Speed up demo request",
+      templateData: demoData   // ✅ fixed
+    });
+
+    res.status(200).json({
+      success: true,
+      status: 200,
+      message: "Send demo request successfully."
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+
+module.exports = { login, me, forgotPassword, demoRequestGet };
