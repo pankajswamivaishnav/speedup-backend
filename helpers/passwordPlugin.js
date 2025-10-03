@@ -22,7 +22,7 @@ function resetPasswordTokenPlugin(schema) {
       const hashToken = crypto.createHash("sha256").update(token).digest("hex");
   
       // Assign to schema fields (ensure your schema has these fields)
-      this.resetPasswordTokens = hashToken;
+      this.resetPasswordToken = hashToken;
       this.resetPasswordExpire = Date.now() + 50 * 60 * 1000; // 50 mins
   
       return token;

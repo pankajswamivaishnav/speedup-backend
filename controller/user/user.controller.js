@@ -20,6 +20,7 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     transportAddress,
     email,
     panCardNumber,
+    transporterId,
     pinCode,
     city,
     state,
@@ -29,6 +30,27 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     role,
     avatar,
   } = req.body;
+
+  const transporter = await Transporter.findOne({
+    $or:[{mobileNumber, officeNumber}]
+  })
+
+  
+  if(transporter){
+    console.log("transporter", transporterId)
+    if (!transporter.transportIds.includes(transporterId)) {
+    transporter.transportIds.push(transporterId);
+    console.log("save")
+    await transporter.save();
+  }
+    setCookieToken(
+      transporter,
+      201,
+      "Transporter Created Successfully",
+      res
+    );
+  }
+
   const transporterProfile = await Transporter.create({
     transportName,
     transporter_first_name,
@@ -41,6 +63,7 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     email,
     faithLine,
     panCardNumber,
+    transportIds: transporterId ? [transporterId] : [],
     pinCode,
     city,
     state,

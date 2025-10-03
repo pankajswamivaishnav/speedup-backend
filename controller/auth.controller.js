@@ -7,6 +7,7 @@ const ErrorHandler = require("../utils/errorHandler");
 const constants = require("../helpers/constants");
 const sendEmail = require("../utils/sendEmail");
 const moment = require("moment");
+const crypto = require("crypto");
 
 // Login Transporter
 const login = catchAsyncHandler(async (req, res, next) => {
@@ -62,10 +63,14 @@ const forgotPassword = catchAsyncHandler(async (req, res, next) => {
   }
   // Get Reset Password From Schema Function
   const resetToken = user.genResetPasswordToken();
+  // const expirationTime =  3600000;
+  // user.resetPasswordToken = resetToken,
+  // user.resetPasswordExpire = expirationTime;
+
   await user.save({ validateBeforeSave: true });
 
   // Make Url Who's Send On Email
-  const resetPasswordLink = `${process.env.FRONTEND_URL}/password/reset/${resetToken}`;
+  const resetPasswordLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
   try {
     const templateData = {
       title: 'Password Reset Request',
@@ -120,5 +125,44 @@ const demoRequestGet = catchAsyncHandler(async (req, res, next) => {
   }
 });
 
+// Reset password 
+const resetPassword = catchAsyncHandler(async(req, res, next)=>{
+   const {token, email, password} = req.body;
+   if (!token){
+    res.status(404).json({
+      status:404,
+      success:false,
+      message:"Reset token is missing"
+    })
+   }
 
-module.exports = { login, me, forgotPassword, demoRequestGet };
+    // Hash the incoming token before checking DB
+  const hashToken = crypto.createHash("sha256").update(token).digest("hex");
+
+   const [transporter, vendor, driver] = await Promise.all([
+    Transporter.findOne({email:email, resetPasswordToken:hashToken}),
+    Vendor.findOne({email:email, resetPasswordToken:hashToken}),
+    Driver.findOne({email:email, resetPasswordToken:hashToken})
+  ])
+
+  const user = transporter || vendor || driver
+  if (!user) {
+    return next(new ErrorHandler("this email does not exist or reset token expired or invalid", 404));
+  }
+
+  console.log("user", user)
+  user.password = password;
+
+   // Clear reset fields
+   user.resetPasswordToken = undefined;
+   user.resetPasswordExpire = undefined;
+  console.log("user-->", user)
+  await user.save({ validateBeforeSave: true });
+
+  res.status(200).json({
+    success: true,
+    message: "Password reset successfully"
+  });
+})
+
+module.exports = { login, me, forgotPassword, resetPassword, demoRequestGet };

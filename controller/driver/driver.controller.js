@@ -7,7 +7,18 @@ const DriverCard = require("../../config/models/driverCard.model");
 
 // Create Driver
 exports.createDriver = catchAsyncHandler(async (req, res, next) => {
+  
   const { first_name,last_name, mobileNumber, licenseNumber, address, transportId, truckNumber, password } = req.body;
+
+  const driver = await Driver.findOne({mobileNumber, transportId })
+
+  if(driver){
+    res.status(400).json({
+      success:false,
+      message:'Driver already exist check phone and license number'
+    })
+  }
+
   const createSuccessfullyDrive = await Driver.create({
     first_name,
     last_name,
@@ -23,15 +34,21 @@ exports.createDriver = catchAsyncHandler(async (req, res, next) => {
     return next("Not Create Driver", 404);
   }
 
-   await DriverCard.create({
-    first_name,
-    last_name,
-    mobileNumber,
-    truckNumber,
-    licenseNumber,
-    address
+  const driverCard = await DriverCard.findOne({
+    $or:[{mobileNumber}]
   })
- 
+
+  if(!driverCard){
+    await DriverCard.create({
+      first_name,
+      last_name,
+      mobileNumber,
+      truckNumber,
+      licenseNumber,
+      address
+    })
+  }
+
   res.status(201).json({
     success: true,
     createSuccessfullyDrive,
@@ -99,22 +116,24 @@ exports.getAllDrivers = catchAsyncHandler(async (req, res, next) => {
   const skip = page*limit
   const searchQuery = req.query.filter;
 
-  let drivers;
+  let drivers, totalDrivers;
   let filter = { isDeleted: false };
   if (searchQuery && searchQuery !== 'undefined') {
     filter.driverName = { $regex: searchQuery, $options: 'i' };
   }
   switch(role){
     case 'super_admin' : {
+      totalDrivers = await Driver.countDocuments(filter)
         drivers = await Driver.find(filter).skip(skip).limit(limit);
        break;
     }
     case 'transporter' :{
-      drivers = await Driver.find({transportId:req.user._id, filter}).skip(skip).limit(limit);
+      totalDrivers = await Driver.countDocuments({...filter, transportId:req.user._id})
+      drivers = await Driver.find({...filter, transportId:req.user._id}).skip(skip).limit(limit);
       break;
     }
   }
-  const totalDrivers = await Driver.countDocuments(filter)
+   
   if (!drivers) {
     return next("no driver found", 404);
   }

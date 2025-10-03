@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
-const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
 const {resetPasswordTokenPlugin, passwordPlugin} = require("../../helpers/passwordPlugin")
 const transporterSchema = new mongoose.Schema({
   transportName: {
@@ -56,6 +54,10 @@ const transporterSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  transportIds:{
+    type:[],
+    default:[]
+  },
   city: {
     type: String,
     required: true,
@@ -100,36 +102,13 @@ const transporterSchema = new mongoose.Schema({
     required:true,
     default:'transporter'
   },
-  resetPasswordTokens: "String",
-  resetPasswordExpire: "Date",
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 },{versionKey:false});
 
 
 // Use plugin
 transporterSchema.plugin(passwordPlugin);
 transporterSchema.plugin(resetPasswordTokenPlugin);
-
-// Hashing algorithm for password
-transporterSchema.pre("save", async function (next) {
-  if (this.isModified("password")) {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
-  next();
-});
-
-// Compare Password
-transporterSchema.methods.comparePassword = async function (password) {
-  return await bcrypt.compare(password, this.password);
-};
-
-// Genrate Token Method For Reset Password
-transporterSchema.methods.genResetPasswordToken = function () {
-  // Token for Reset Password
-  const token = crypto.randomBytes(20).toString("hex");
-  const hashToken = crypto.createHash("sha256").update(token).digest("hex");
-  this.resetPasswordTokens = hashToken;
-  this.resetPasswordExpire = Date.now() + 50 * 60 * 1000;
-  return token;
-};
 
 module.exports = new mongoose.model("Transporter", transporterSchema);

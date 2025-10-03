@@ -14,6 +14,7 @@ exports.createVendor = catchAsyncHandler(async (req, res, next) => {
     vendorSecondaryPhoneNumber,
     email,
     pinCode,
+    transportId,
     city,
     state,
     country,
@@ -21,6 +22,15 @@ exports.createVendor = catchAsyncHandler(async (req, res, next) => {
     role,
     avatar,
   } = req.body;
+
+  const vendor = await Vendor.findOne({mobileNumber, transportId})
+
+  if(vendor){
+    res.status(400).json({
+      success:false,
+      message:'Vendor already exist please check mobile number'
+    })
+  }
 
   await Vendor.create({
     first_name,
@@ -31,6 +41,7 @@ exports.createVendor = catchAsyncHandler(async (req, res, next) => {
     vendorSecondaryPhoneNumber,
     email,
     pinCode,
+    transportId,
     city,
     state,
     country,
@@ -39,17 +50,22 @@ exports.createVendor = catchAsyncHandler(async (req, res, next) => {
     avatar,
   });
 
-   await vendorCardModel.create({
-    first_name,
-    last_name,
-    mobileNumber,
-    address,
-    business,
-    email,
-    city,
-    avatar
-   })
+  const vendorCard = await vendorCardModel.findOne({
+    $or: [{ email }, { mobileNumber }]
+  });
 
+   if(!vendorCard){
+    await vendorCardModel.create({
+      first_name,
+      last_name,
+      mobileNumber,
+      address,
+      business,
+      email,
+      city,
+      avatar
+     })
+   }
   res.status(200).json({
     success: true,
     message: "Vendor created successfully",
@@ -58,26 +74,43 @@ exports.createVendor = catchAsyncHandler(async (req, res, next) => {
 
 // get all vendors
 exports.getTotalVendors = catchAsyncHandler(async(req, res, next)=>{
+  const role = req.user.role;
   const page = req.query.page;
   const limit = req.query.limit;
   const skip = page*limit;
   const searchQuery = req.query.filter;
-
-  let totalVendors;
+  let totalVendors, totalUsers;
   let filter = { isDeleted: false };
   if (searchQuery && searchQuery !== 'undefined') {
     filter.$or = [
       {first_name:{ $regex: searchQuery, $options: 'i' }},
       {last_name:{ $regex: searchQuery, $options: 'i' }}
     ]
-  }
-  const totalUsers = await Vendor.countDocuments(filter);
+  };
+  switch(role){
+    case 'super_admin' :{
+      totalUsers = await Vendor.countDocuments(filter);
+      if(page == 0 && limit == 0){
+        totalVendors = await Vendor.find(filter);
+       }else{
+        totalVendors = await Vendor.find(filter).skip(skip||0).limit(limit||1);
+       }
+       break;
+    }
 
-  if(page == 0 && limit == 0){
-    totalVendors = await Vendor.find(filter);
-   }else{
-    totalVendors = await Vendor.find(filter).skip(skip||0).limit(limit||1);
-   }
+    case 'transporter' :{
+      const transporterFilter = { ...filter, transportId: req.user._id };
+      totalUsers = await Vendor.countDocuments(transporterFilter);
+      if(page == 0 && limit == 0){
+        totalVendors = await Vendor.find(transporterFilter);
+       }else{
+        totalVendors = await Vendor.find(transporterFilter).skip(skip||0).limit(limit||1);
+       }
+       break;
+    }
+  }
+
+ 
    res.status(200).json({
      success:true,
      data: totalVendors,

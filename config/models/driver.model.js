@@ -32,7 +32,7 @@ const driverSchema = new mongoose.Schema({
   },
   transportId:{
     type:mongoose.Types.ObjectId,
-    ref:"Transporter"
+    ref:"Transporter",
   },
   password:{
     type:String,
@@ -41,8 +41,9 @@ const driverSchema = new mongoose.Schema({
   isDeleted:{
     type:Boolean,
     default:false
-  }
- 
+  },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 },{
   versionKey:false
 });

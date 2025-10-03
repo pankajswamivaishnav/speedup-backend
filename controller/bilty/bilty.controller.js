@@ -103,11 +103,11 @@ exports.getAllBiltis = catchAsyncHandler(async (req, res, next) => {
       break;
     }
     case 'transporter' : {
-      allBiltis = await BiltyInfo.find({transportId:req.user._id, filter}).skip(skip).limit(limit);
+      totalBilties = await BiltyInfo.countDocuments({...filter, transportId:req.user._id});
+      allBiltis = await BiltyInfo.find({...filter, transportId:req.user._id}).skip(skip).limit(limit);
       break;
     }
   }
-  const totalBilty = await BiltyInfo.countDocuments(filter)
   res.status(200).json({
     success: true,
     data:allBiltis,

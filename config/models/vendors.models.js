@@ -39,6 +39,10 @@ const vendorSchema = new mongoose.Schema({
   pinCode:{
     type:String,
   },
+  transportId:{
+    type:mongoose.Types.ObjectId,
+    ref:"Transporter"
+  },
   city:{
     type:String,
     required:true,
@@ -63,7 +67,9 @@ const vendorSchema = new mongoose.Schema({
     type:Boolean,
     required:true,
     default:false
-  }
+  },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 },{versionKey:false});
 
 vendorSchema.plugin(passwordPlugin);
