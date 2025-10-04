@@ -34,6 +34,10 @@ const driverSchema = new mongoose.Schema({
     type:mongoose.Types.ObjectId,
     ref:"Transporter",
   },
+  role:{
+    type:String,
+    default:'driver'
+  },
   password:{
     type:String,
     required:true

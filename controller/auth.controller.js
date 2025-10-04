@@ -9,22 +9,38 @@ const sendEmail = require("../utils/sendEmail");
 const moment = require("moment");
 const crypto = require("crypto");
 
+
 // Login Transporter
 const login = catchAsyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return next(new ErrorHandler("Please Enter Valid Email & Password", 400));
+  const { email, mobileNumber, password } = req.body;
+
+  console.log("mobile number", mobileNumber);
+
+  if ((!email && !mobileNumber) || !password) {
+    return next(new ErrorHandler("Please enter a valid Email or Mobile Number & Password", 400));
   }
-  const user = await Transporter.findOne({ email });
+
+  // Find user by email or mobileNumber
+  const [transporter, driver, vendor] = await Promise.all([
+    Transporter.findOne({ $or: [{ email }, { mobileNumber }] }),
+    Driver.findOne({ $or: [{ email }, { mobileNumber }] }),
+    Vendor.findOne({ $or: [{ email }, { mobileNumber }] })
+  ]);
+
+  const user = transporter || driver || vendor;
+
   if (!user) {
     return next(new ErrorHandler("User not found", 401));
   }
+
   const isPasswordMatched = await user.comparePassword(password);
   if (!isPasswordMatched) {
-    return next(new ErrorHandler("Credentials mismatch"));
+    return next(new ErrorHandler("Credentials mismatch", 401));
   }
+
   setCookieToken(user, 200, "Login Successfully", res);
 });
+
 
 const me = catchAsyncHandler(async (req, res) => {
   let requestUser = req.user;
@@ -35,9 +51,18 @@ const me = catchAsyncHandler(async (req, res) => {
     });
     return;
   }
-  const user = await Transporter.findOne({
-    email: requestUser.email,
-  }).lean();
+
+  const [transporter, driver, vendor] = await Promise.all([
+    Transporter.findOne({ email:requestUser.email }).lean(),
+    Driver.findOne({ email:requestUser.email }).lean(),
+    Vendor.findOne({ email:requestUser.email }).lean()
+  ]);
+
+  const user =  transporter || driver || vendor;
+
+  // const user = await Transporter.findOne({
+  //   email: requestUser.email,
+  // }).lean();
 
   if (!user) {
     res.status(constants.STATUS_CODES.NOT_FOUND).json({
@@ -63,9 +88,7 @@ const forgotPassword = catchAsyncHandler(async (req, res, next) => {
   }
   // Get Reset Password From Schema Function
   const resetToken = user.genResetPasswordToken();
-  // const expirationTime =  3600000;
-  // user.resetPasswordToken = resetToken,
-  // user.resetPasswordExpire = expirationTime;
+ 
 
   await user.save({ validateBeforeSave: true });
 
@@ -150,13 +173,11 @@ const resetPassword = catchAsyncHandler(async(req, res, next)=>{
     return next(new ErrorHandler("this email does not exist or reset token expired or invalid", 404));
   }
 
-  console.log("user", user)
   user.password = password;
 
    // Clear reset fields
    user.resetPasswordToken = undefined;
    user.resetPasswordExpire = undefined;
-  console.log("user-->", user)
   await user.save({ validateBeforeSave: true });
 
   res.status(200).json({

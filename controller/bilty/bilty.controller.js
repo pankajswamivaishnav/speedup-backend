@@ -107,6 +107,18 @@ exports.getAllBiltis = catchAsyncHandler(async (req, res, next) => {
       allBiltis = await BiltyInfo.find({...filter, transportId:req.user._id}).skip(skip).limit(limit);
       break;
     }
+
+    case 'vendor' : {
+      totalBilties = await BiltyInfo.countDocuments({...filter, transportId:req.user._id});
+      allBiltis = await BiltyInfo.find({...filter, transportId:req.user._id}).skip(skip).limit(limit);
+      break;
+    }
+
+    case 'driver' :{
+      totalBilties = await BiltyInfo.countDocuments({...filter, transportId:req.user._id});
+      allBiltis = await BiltyInfo.find({...filter, transportId:req.user._id}).skip(skip).limit(limit);
+      break;
+    }
   }
   res.status(200).json({
     success: true,

@@ -1,6 +1,4 @@
-const Transporter = require("../../config/models/transporterSchema.model");
 const User = require("../../config/models/transporterSchema.model");
-const Bilty = require("../../config/models/bilty.model");
 // Middleware & Utils Error
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
 

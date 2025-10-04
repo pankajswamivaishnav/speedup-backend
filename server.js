@@ -18,7 +18,6 @@ const passport = require("passport");
 require("./helpers/passport");
 
 // Middlewares
-console.log("insert in to the server.js")
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());

@@ -55,6 +55,10 @@ const vendorSchema = new mongoose.Schema({
     type:String,
     required:true,
   },
+  role:{
+    type:String,
+    default:'vendor'
+  },
   avatar: {
     public_id: {
       type: "String",

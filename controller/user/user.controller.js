@@ -37,10 +37,8 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
 
   
   if(transporter){
-    console.log("transporter", transporterId)
     if (!transporter.transportIds.includes(transporterId)) {
     transporter.transportIds.push(transporterId);
-    console.log("save")
     await transporter.save();
   }
     setCookieToken(
