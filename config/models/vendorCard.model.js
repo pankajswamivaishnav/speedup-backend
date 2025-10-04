@@ -49,7 +49,7 @@ const vendorCardSchema = new mongoose.Schema({
     required:true,
     default:false
   }
-});
+},{timestamps: true, versionKey:false});
 
 
 module.exports = new mongoose.model("Vendorcard", vendorCardSchema);

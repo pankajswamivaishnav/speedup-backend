@@ -104,7 +104,7 @@ const transporterSchema = new mongoose.Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
-},{versionKey:false});
+},{timestamps: true, versionKey:false});
 
 
 // Use plugin

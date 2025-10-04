@@ -74,7 +74,7 @@ const vendorSchema = new mongoose.Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
-},{versionKey:false});
+},{timestamps: true, versionKey:false});
 
 vendorSchema.plugin(passwordPlugin);
 vendorSchema.plugin(resetPasswordTokenPlugin);

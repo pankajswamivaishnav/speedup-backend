@@ -54,7 +54,7 @@ const transportCardSchema = new mongoose.Schema({
     required:true,
     default:false
   },
-},{versionKey:false});
+},{timestamps: true,versionKey:false});
 
 
 module.exports = new mongoose.model("TransportCard", transportCardSchema);

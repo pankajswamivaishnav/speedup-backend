@@ -49,6 +49,7 @@ const driverSchema = new mongoose.Schema({
   resetPasswordToken: String,
   resetPasswordExpire: Date,
 },{
+  timestamps: true,
   versionKey:false
 });
 
