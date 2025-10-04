@@ -5,4 +5,5 @@ module.exports = {
   APP_SECRET: process.env.APP_SECRET,
   EMAIL_USERNAME: process.env.EMAIL_USERNAME,
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
+  MONGO_URI: process.env.MONGO_URI
 };
