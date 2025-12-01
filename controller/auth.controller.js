@@ -8,23 +8,120 @@ const constants = require("../helpers/constants");
 const sendEmail = require("../utils/sendEmail");
 const moment = require("moment");
 const crypto = require("crypto");
+const userModel = require("../config/models/user.model");
+const mongoose = require("mongoose");
 
+// Register
+const register = catchAsyncHandler(async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-// Login Transporter
+  try {
+    const { firstName, lastName, email, mobileNumber, role, password } =
+      req.body;
+
+    // 1️⃣ Create user
+    const user = await userModel.create(
+      [
+        {
+          firstName,
+          lastName,
+          email,
+          mobileNumber,
+          role,
+          password,
+        },
+      ],
+      { session }
+    );
+
+    let result;
+
+    // 2️⃣ Create related table record based on role
+    switch (role) {
+      case "transporter":
+        result = await Transporter.create(
+          [
+            {
+              first_name: firstName,
+              last_name: lastName,
+              mobileNumber,
+              password,
+              email,
+              role,
+            },
+          ],
+          { session }
+        );
+        break;
+
+      case "vendor":
+        result = await Vendor.create(
+          [
+            {
+              first_name: firstName,
+              last_name: lastName,
+              mobileNumber,
+              password,
+              email,
+              role,
+            },
+          ],
+          { session }
+        );
+        break;
+
+      case "driver":
+        result = await Driver.create(
+          [
+            {
+              first_name: firstName,
+              last_name: lastName,
+              mobileNumber,
+              password,
+              email,
+              role,
+            },
+          ],
+          { session }
+        );
+        break;
+    }
+
+    // Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      status: 201,
+      message: "User Created Successfully",
+      data: result,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+});
+
+// Login User
 const login = catchAsyncHandler(async (req, res, next) => {
-  const { email, mobileNumber, password } = req.body;
-
-  console.log("mobile number", mobileNumber);
+  const { email, mobileNumber, password, keepSignedIn } = req.body;
 
   if ((!email && !mobileNumber) || !password) {
-    return next(new ErrorHandler("Please enter a valid Email or Mobile Number & Password", 400));
+    return next(
+      new ErrorHandler(
+        "Please enter a valid Email or Mobile Number & Password",
+        400
+      )
+    );
   }
 
   // Find user by email or mobileNumber
   const [transporter, driver, vendor] = await Promise.all([
     Transporter.findOne({ $or: [{ email }, { mobileNumber }] }),
     Driver.findOne({ $or: [{ email }, { mobileNumber }] }),
-    Vendor.findOne({ $or: [{ email }, { mobileNumber }] })
+    Vendor.findOne({ $or: [{ email }, { mobileNumber }] }),
   ]);
 
   const user = transporter || driver || vendor;
@@ -38,9 +135,8 @@ const login = catchAsyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("Credentials mismatch", 401));
   }
 
-  setCookieToken(user, 200, "Login Successfully", res);
+  setCookieToken(user, 200, "Login Successfully", res, keepSignedIn);
 });
-
 
 const me = catchAsyncHandler(async (req, res) => {
   let requestUser = req.user;
@@ -53,12 +149,12 @@ const me = catchAsyncHandler(async (req, res) => {
   }
 
   const [transporter, driver, vendor] = await Promise.all([
-    Transporter.findOne({ email:requestUser.email }).lean(),
-    Driver.findOne({ email:requestUser.email }).lean(),
-    Vendor.findOne({ email:requestUser.email }).lean()
+    Transporter.findOne({ email: requestUser.email }).lean(),
+    Driver.findOne({ email: requestUser.email }).lean(),
+    Vendor.findOne({ email: requestUser.email }).lean(),
   ]);
 
-  const user =  transporter || driver || vendor;
+  const user = transporter || driver || vendor;
 
   // const user = await Transporter.findOne({
   //   email: requestUser.email,
@@ -78,17 +174,16 @@ const me = catchAsyncHandler(async (req, res) => {
 const forgotPassword = catchAsyncHandler(async (req, res, next) => {
   const { email } = req.body;
   const [transporter, vendor, driver] = await Promise.all([
-    Transporter.findOne({email:email}),
-    Vendor.findOne({email:email}),
-    Driver.findOne({email:email})
-  ])
-  const user = transporter || vendor || driver
+    Transporter.findOne({ email: email }),
+    Vendor.findOne({ email: email }),
+    Driver.findOne({ email: email }),
+  ]);
+  const user = transporter || vendor || driver;
   if (!user) {
     return next(new ErrorHandler("this email does not exist", 404));
   }
   // Get Reset Password From Schema Function
   const resetToken = user.genResetPasswordToken();
- 
 
   await user.save({ validateBeforeSave: true });
 
@@ -96,17 +191,19 @@ const forgotPassword = catchAsyncHandler(async (req, res, next) => {
   const resetPasswordLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
   try {
     const templateData = {
-      title: 'Password Reset Request',
+      title: "Password Reset Request",
       greeting: "Pankaj Swami Vaishnav",
-      message: 'We received a request to reset your password. Click the button below to create a new password. This link will expire in 24 hours for security reasons.',
-      buttonText: 'Change Password',
+      message:
+        "We received a request to reset your password. Click the button below to create a new password. This link will expire in 24 hours for security reasons.",
+      buttonText: "Change Password",
       buttonUrl: `${resetPasswordLink}`,
-      additionalInfo: 'If you didn\'t request this password reset, please ignore this email. Your password will remain unchanged.'
-  };
+      additionalInfo:
+        "If you didn't request this password reset, please ignore this email. Your password will remain unchanged.",
+    };
     await sendEmail({
       email: user.email,
       subject: "Your Password Reset",
-      templateData
+      templateData,
     });
     res.status(200).json({
       success: true,
@@ -125,65 +222,83 @@ const demoRequestGet = catchAsyncHandler(async (req, res, next) => {
   try {
     const demoData = {
       title: "New Demo Request Received",
-      greeting: "Admin",   // ✅ add greeting
-      message: "A new demo request has been submitted by the user. Please check the details below:",
+      greeting: "Admin", // ✅ add greeting
+      message:
+        "A new demo request has been submitted by the user. Please check the details below:",
       buttonText: "View Request",
       buttonUrl: `${process.env.FRONTEND_URL}/admin/demo-requests`,
-      additionalInfo: `User ${req.body.name} with phone number ${req.body.mobileNumber} and email ${req.body.email} has requested a demo on ${moment(req.body.dateTime).format("YYYY-MM-DD")} at ${moment(req.body.dateTime).format("hh:mmA")}.`
-
+      additionalInfo: `User ${req.body.name} with phone number ${
+        req.body.mobileNumber
+      } and email ${req.body.email} has requested a demo on ${moment(
+        req.body.dateTime
+      ).format("YYYY-MM-DD")} at ${moment(req.body.dateTime).format(
+        "hh:mmA"
+      )}.`,
     };
     await sendEmail({
       email: req.body.email,
       subject: "Speed up demo request",
-      templateData: demoData   // ✅ fixed
+      templateData: demoData, // ✅ fixed
     });
 
     res.status(200).json({
       success: true,
       status: 200,
-      message: "Send demo request successfully."
+      message: "Send demo request successfully.",
     });
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
 });
 
-// Reset password 
-const resetPassword = catchAsyncHandler(async(req, res, next)=>{
-   const {token, email, password} = req.body;
-   if (!token){
+// Reset password
+const resetPassword = catchAsyncHandler(async (req, res, next) => {
+  const { token, email, password } = req.body;
+  if (!token) {
     res.status(404).json({
-      status:404,
-      success:false,
-      message:"Reset token is missing"
-    })
-   }
+      status: 404,
+      success: false,
+      message: "Reset token is missing",
+    });
+  }
 
-    // Hash the incoming token before checking DB
+  // Hash the incoming token before checking DB
   const hashToken = crypto.createHash("sha256").update(token).digest("hex");
 
-   const [transporter, vendor, driver] = await Promise.all([
-    Transporter.findOne({email:email, resetPasswordToken:hashToken}),
-    Vendor.findOne({email:email, resetPasswordToken:hashToken}),
-    Driver.findOne({email:email, resetPasswordToken:hashToken})
-  ])
+  const [transporter, vendor, driver] = await Promise.all([
+    Transporter.findOne({ email: email, resetPasswordToken: hashToken }),
+    Vendor.findOne({ email: email, resetPasswordToken: hashToken }),
+    Driver.findOne({ email: email, resetPasswordToken: hashToken }),
+  ]);
 
-  const user = transporter || vendor || driver
+  const user = transporter || vendor || driver;
   if (!user) {
-    return next(new ErrorHandler("this email does not exist or reset token expired or invalid", 404));
+    return next(
+      new ErrorHandler(
+        "this email does not exist or reset token expired or invalid",
+        404
+      )
+    );
   }
 
   user.password = password;
 
-   // Clear reset fields
-   user.resetPasswordToken = undefined;
-   user.resetPasswordExpire = undefined;
+  // Clear reset fields
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
   await user.save({ validateBeforeSave: true });
 
   res.status(200).json({
     success: true,
-    message: "Password reset successfully"
+    message: "Password reset successfully",
   });
-})
+});
 
-module.exports = { login, me, forgotPassword, resetPassword, demoRequestGet };
+module.exports = {
+  login,
+  me,
+  forgotPassword,
+  resetPassword,
+  demoRequestGet,
+  register,
+};

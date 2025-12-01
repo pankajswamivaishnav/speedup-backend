@@ -1,8 +1,8 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
-const { JWT_SECRET } = require('../config/config');
-const bcrypt = require('bcryptjs')
+const { JWT_SECRET } = require("../config/config");
+const bcrypt = require("bcryptjs");
 
 exports.genTransportId = async (id) => {
   try {
@@ -19,15 +19,13 @@ function generateToken(payload, expiresIn = "1d") {
 }
 
 // Hash password before saving
-exports.hashPassword = async(password) => {
+exports.hashPassword = async (password) => {
   return await bcrypt.hash(password, 10);
-}
+};
 
 // Compare password
-exports.comparePassword = async(plainPassword, hashedPassword) => {
+exports.comparePassword = async (plainPassword, hashedPassword) => {
   return await bcrypt.compare(plainPassword, hashedPassword);
-}
-
-
+};
 
 module.exports = { generateToken };

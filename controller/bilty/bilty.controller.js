@@ -4,11 +4,11 @@ const moment = require("moment");
 // Middleware & Utils Error
 const ErrorHandler = require("../../utils/errorHandler");
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
-const DriverCardModel = require("../../config/models/driverCard.model")
+const DriverCardModel = require("../../config/models/driverCard.model");
 // Make Bilty
 exports.bilty = catchAsyncHandler(async (req, res, next) => {
-  const id = req.user._id
-  const gst = req.user.gstNumber 
+  const id = req.user._id;
+  const gst = req.user.gstNumber;
   const {
     transporterNumber,
     truckNumber,
@@ -29,21 +29,21 @@ exports.bilty = catchAsyncHandler(async (req, res, next) => {
     advancePayment,
     paymentType,
   } = req.body;
-  
+
   const formatedDate = moment(date).format("YYYY-MM-DD, hh:mm");
   const biltyData = await BiltyInfo.create({
-    transportId:id,
-    gstNumber:gst,
-    registrationNumber:req.user.registrationNumber,
+    transportId: id,
+    gstNumber: gst,
+    registrationNumber: req.user.registrationNumber,
     transporterNumber,
-    truckNumber:truckNumber.toLowerCase(),
+    truckNumber: truckNumber.toUpperCase(),
     from,
     to,
     formatedDate,
     brokingCharge,
     driverPhoneNumber,
-    driverName:driverName.toLowerCase(),
-    senderInformation:{
+    driverName: driverName.toLowerCase(),
+    senderInformation: {
       name: senderName.toLowerCase(),
       number: senderNumber,
     },
@@ -56,22 +56,24 @@ exports.bilty = catchAsyncHandler(async (req, res, next) => {
     truckCharge,
     advancePayment,
     remainingPayment,
-    paymentType
+    paymentType,
   });
 
   if (!biltyData) {
     return next(ErrorHandler("Did Not Save Bilty Data", 404));
   }
 
-  const driverCard = await DriverCardModel.findOne({mobileNumber:driverPhoneNumber});
-  if(!driverCard){
-   const [first_name, last_name] = driverName.split(" ");
-   await DriverCardModel.create({
+  const driverCard = await DriverCardModel.findOne({
+    mobileNumber: driverPhoneNumber,
+  });
+  if (!driverCard) {
+    const [first_name, last_name] = driverName.split(" ");
+    await DriverCardModel.create({
       first_name,
       last_name,
-      mobileNumber:driverPhoneNumber,
-      truckNumber
-   })
+      mobileNumber: driverPhoneNumber,
+      truckNumber,
+    });
   }
 
   res.status(201).json({
@@ -85,44 +87,66 @@ exports.getAllBiltis = catchAsyncHandler(async (req, res, next) => {
   const role = req.user.role;
   const page = req.query.page;
   const limit = req.query.limit;
-  const skip = page*limit;
+  const skip = page * limit;
   const searchQuery = req.query.filter;
   let allBiltis, totalBilties;
   let filter = { isDeleted: false };
-  if (searchQuery && searchQuery !== 'undefined') {
-    filter.biltyNumber = { $regex: searchQuery, $options: 'i' };
-  }  
-  switch(role){
-    case 'super_admin' : {
+  if (searchQuery && searchQuery !== "undefined") {
+    filter.biltyNumber = { $regex: searchQuery, $options: "i" };
+  }
+  switch (role) {
+    case "super_admin": {
       totalBilties = await BiltyInfo.countDocuments(filter);
-      if(page == 0 && limit == 0){
-      allBiltis = await BiltyInfo.find(filter);
-      }else{
-        allBiltis = await BiltyInfo.find(filter).skip(skip).limit(limit);
+      if (page == 0 && limit == 0) {
+        allBiltis = await BiltyInfo.find(filter).populate("transportId");
+      } else {
+        allBiltis = await BiltyInfo.find(filter)
+          .skip(skip)
+          .limit(limit)
+          .populate("transportId");
       }
       break;
     }
-    case 'transporter' : {
-      totalBilties = await BiltyInfo.countDocuments({...filter, transportId:req.user._id});
-      allBiltis = await BiltyInfo.find({...filter, transportId:req.user._id}).skip(skip).limit(limit);
+    case "transporter": {
+      totalBilties = await BiltyInfo.countDocuments({
+        ...filter,
+        transportId: req.user._id,
+      });
+      allBiltis = await BiltyInfo.find({ ...filter, transportId: req.user._id })
+        .skip(skip)
+        .limit(limit)
+        .populate("transportId");
       break;
     }
 
-    case 'vendor' : {
-      totalBilties = await BiltyInfo.countDocuments({...filter, transportId:req.user._id});
-      allBiltis = await BiltyInfo.find({...filter, transportId:req.user._id}).skip(skip).limit(limit);
+    case "vendor": {
+      totalBilties = await BiltyInfo.countDocuments({
+        ...filter,
+        transportId: req.user._id,
+      });
+      allBiltis = await BiltyInfo.find({ ...filter, transportId: req.user._id })
+        .skip(skip)
+        .limit(limit)
+        .populate("transportId");
       break;
     }
 
-    case 'driver' :{
-      totalBilties = await BiltyInfo.countDocuments({...filter, transportId:req.user._id});
-      allBiltis = await BiltyInfo.find({...filter, transportId:req.user._id}).skip(skip).limit(limit);
+    case "driver": {
+      totalBilties = await BiltyInfo.countDocuments({
+        ...filter,
+        transportId: req.user._id,
+      });
+      allBiltis = await BiltyInfo.find({ ...filter, transportId: req.user._id })
+        .skip(skip)
+        .limit(limit)
+        .populate("transportId");
       break;
     }
   }
+
   res.status(200).json({
     success: true,
-    data:allBiltis,
+    data: allBiltis,
     total: totalBilties,
   });
 });
@@ -260,21 +284,19 @@ exports.getBiltyByDate = catchAsyncHandler(async (req, res, next) => {
   });
 });
 
-
 // Delete Bilty
-exports.deleteBilty = catchAsyncHandler(async(req, res)=>{
+exports.deleteBilty = catchAsyncHandler(async (req, res) => {
   const _id = req.params.id;
 
   const response = await BiltyInfo.findByIdAndUpdate(
     _id,
-    { isDeleted: true },   
-    { new: true }          
-  );  
+    { isDeleted: true },
+    { new: true }
+  );
 
-  
   res.status(200).json({
     success: true,
-    message:"Delete bilty successfully !!",
+    message: "Delete bilty successfully !!",
     data: response,
   });
-})
+});

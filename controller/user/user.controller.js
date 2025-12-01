@@ -7,12 +7,14 @@ const setCookieToken = require("../../utils/cookieToken");
 const moment = require("moment");
 const transportCardModel = require("../../config/models/transportCard.model");
 const sendEmail = require("../../utils/sendEmail");
+const Vendor = require("../../config/models/vendors.models");
+const Driver = require("../../config/models/driver.model");
 //Register Transporter
 exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
   const {
     transportName,
-    transporter_first_name,
-    transporter_last_name,
+    first_name,
+    last_name,
     mobileNumber,
     officeNumber,
     registrationNumber,
@@ -32,27 +34,21 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
   } = req.body;
 
   const transporter = await Transporter.findOne({
-    $or:[{mobileNumber, officeNumber}]
-  })
+    $or: [{ mobileNumber, officeNumber }],
+  });
 
-  
-  if(transporter){
+  if (transporter) {
     if (!transporter.transportIds.includes(transporterId)) {
-    transporter.transportIds.push(transporterId);
-    await transporter.save();
-  }
-    setCookieToken(
-      transporter,
-      201,
-      "Transporter Created Successfully",
-      res
-    );
+      transporter.transportIds.push(transporterId);
+      await transporter.save();
+    }
+    setCookieToken(transporter, 201, "Transporter Created Successfully", res);
   }
 
   const transporterProfile = await Transporter.create({
     transportName,
-    transporter_first_name,
-    transporter_last_name,
+    first_name: first_name,
+    last_name: last_name,
     mobileNumber,
     officeNumber,
     registrationNumber,
@@ -68,7 +64,7 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     country,
     password,
     role,
-   avatar,
+    avatar,
     createdAt: moment().format("YYYY-MM-DD"),
   });
 
@@ -81,40 +77,41 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     $or: [
       { email: email },
       { mobileNumber: mobileNumber },
-      { officeNumber: officeNumber }
-    ]
-  })
+      { officeNumber: officeNumber },
+    ],
+  });
 
   // ------ Create Transporter Card ------
-  if(!transportCard){
+  if (!transportCard) {
     await transportCardModel.create({
-      first_name:transporter_first_name,
-      last_name:transporter_last_name,
+      first_name: first_name,
+      last_name: last_name,
       email,
       mobileNumber,
       officeNumber,
       transportName,
       city,
-      address:transportAddress,
-      avatar
-    })
+      address: transportAddress,
+      avatar,
+    });
   }
- 
+
   const templateData = {
-    title: 'Welcome to Speed Up !',
-    greeting:`${transporter_first_name} ${transporter_last_name}`,
+    title: "Welcome to Speed Up !",
+    greeting: `${first_name} ${last_name}`,
     message: `We’re excited to have you on board with Speed Up! 🚀  
   Your account has been created successfully, and you’re all set to start accelerating your success with us.  
   Click the button below to explore your dashboard and get started.`,
-    buttonText: 'Go to Dashboard',
+    buttonText: "Go to Dashboard",
     buttonUrl: `http://localhost:3000/dashboard`,
-    additionalInfo: 'If you have any questions or need help, our support team is always here for you.'
-};
+    additionalInfo:
+      "If you have any questions or need help, our support team is always here for you.",
+  };
 
   await sendEmail({
-    email:email,
+    email: email,
     subject: "🎉 Welcom to Speed Up ! 🎉",
-    templateData
+    templateData,
   });
 
   setCookieToken(
@@ -143,51 +140,125 @@ exports.loginTransporter = catchAsyncHandler(async (req, res, next) => {
 });
 
 // Update Transporter Profile
-exports.updateTransporter = catchAsyncHandler(async (req, res, next) => {
+exports.updateUser = catchAsyncHandler(async (req, res, next) => {
   let id = req.params.id;
-  const {
-    transportName,
-    transporterName,
-    mobileNumber,
-    officeNumber,
-    registrationNumber,
-    gstNumber,
-    transportAddress,
-    email,
-    panCardNumber,
-    pinCode,
-    city,
-    state,
-    country,
-    faithLine,
-    role,
-  } = req.body;
-  const user = await User.findById({ _id: id });
-  if (!user) {
-    return next(new ErrorHandler("User Not Found", 404));
+  const loginUser = await req.user;
+
+  let isUpdatedUser;
+  switch (loginUser.role) {
+    case "transporter": {
+      const {
+        transportName,
+        first_name,
+        last_name,
+        mobileNumber,
+        officeNumber,
+        registrationNumber,
+        gstNumber,
+        transportAddress,
+        email,
+        panCardNumber,
+        pinCode,
+        city,
+        state,
+        country,
+        faithLine,
+        role,
+        avatar,
+      } = req.body;
+      const user = await Transporter.findById({ _id: loginUser._id });
+      if (!user) {
+        return next(new ErrorHandler("User Not Found", 404));
+      }
+      user.transportName = transportName || user.transportName;
+      user.first_name = first_name || user.first_name;
+      user.last_name = last_name || user.last_name;
+      (user.mobileNumber = mobileNumber || user.mobileNumber),
+        (user.officeNumber = officeNumber || user.officeNumber),
+        (user.registrationNumber =
+          registrationNumber || user.registrationNumber),
+        (user.email = email || user.email),
+        (user.faithLine = faithLine || user.faithLine),
+        (user.country = country || user.country),
+        (user.state = state || user.state),
+        (user.city = city || user.city),
+        (user.pinCode = pinCode || user.pinCode),
+        (user.panCardNumber = panCardNumber || user.panCardNumber),
+        (user.gstNumber = gstNumber || user.gstNumber),
+        (user.transportAddress = transportAddress || user.transportAddress),
+        (user.avatar = avatar || user.avatar),
+        (user.role = role || user.role);
+
+      isUpdatedUser = await user.save();
+      break;
+    }
+    case "vendor": {
+      const {
+        first_name,
+        last_name,
+        mobileNumber,
+        address,
+        business,
+        vendorSecondaryPhoneNumber,
+        email,
+        pinCode,
+        transportId,
+        city,
+        state,
+        country,
+        avatar,
+      } = req.body;
+      const update = {
+        first_name: first_name,
+        last_name: last_name,
+        mobileNumber: mobileNumber,
+        address: address,
+        business: business,
+        vendorSecondaryPhoneNumber: vendorSecondaryPhoneNumber,
+        email: email,
+        pinCode: pinCode,
+        transportId: transportId,
+        city: city,
+        state: state,
+        country: country,
+        avatar: avatar,
+      };
+
+      isUpdatedUser = await Vendor.findByIdAndUpdate(
+        { _id: loginUser._id },
+        { $set: update },
+        { new: true }
+      );
+      break;
+    }
+    case "driver": {
+      const update = {
+        first_name: req.body.first_name,
+        last_name: req.body.last_name,
+        mobileNumber: req.body.mobileNumber,
+        licenseNumber: req.body.licenseNumber,
+        address: req.body.address,
+        truckNumber: req.body.truckNumber,
+      };
+      isUpdatedUser = await Driver.findByIdAndUpdate(
+        {
+          _id: loginUser._id,
+        },
+        { $set: update },
+        { new: true }
+      );
+
+      break;
+    }
   }
-  user.transportName = transportName || user.transportName;
-  user.transporterName = transporterName || user.transporterName;
-  (user.mobileNumber = mobileNumber || user.mobileNumber),
-    (user.officeNumber = officeNumber || user.officeNumber),
-    (user.registrationNumber = registrationNumber || user.registrationNumber),
-    (user.email = email || user.email),
-    (user.faithLine = faithLine || user.faithLine),
-    (user.country = country || user.country),
-    (user.state = state || user.state),
-    (user.city = city || user.city),
-    (user.pinCode = pinCode || user.pinCode),
-    (user.panCardNumber = panCardNumber || user.panCardNumber),
-    (user.gstNumber = gstNumber || user.gstNumber),
-    (user.transportAddress = transportAddress || user.transportAddress);
-    (user.role = role || user.role);
-  const isUpdateTransporter = await user.save();
-  if (!isUpdateTransporter) {
-    return next(new ErrorHandler("Transporter not updated", 404));
+
+  if (!isUpdatedUser) {
+    return next(new ErrorHandler("User not updated", 404));
   }
+
   res.status(204).json({
     success: true,
-    message: "Update Transporter",
+    message: "Update User",
   });
 });
 
@@ -222,4 +293,30 @@ exports.updateTransporterPassword = catchAsyncHandler(
   }
 );
 
-
+// Get logged In user
+exports.getUserById = catchAsyncHandler(async (req, res, next) => {
+  const user = req.user;
+  let response;
+  switch (user.role) {
+    case "transporter": {
+      response = await Transporter.findById({ _id: user._id });
+      break;
+    }
+    case "vendor": {
+      response = await Vendor.findById({ _id: user._id });
+      break;
+    }
+    case "driver": {
+      response = await Driver.findById({ _id: user._id });
+      break;
+    }
+  }
+  if (!response) {
+    return next(new ErrorHandler("User Not Found", 404));
+  }
+  res.status(200).json({
+    success: true,
+    message: "Get user successfully",
+    data: response,
+  });
+});

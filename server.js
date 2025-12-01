@@ -17,6 +17,7 @@ const VendorRoute = require("./routes/vendors/vendor.routes");
 const passport = require("passport");
 require("./helpers/passport");
 
+
 // Middlewares
 app.use(express.json());
 app.use(cookieParser());
