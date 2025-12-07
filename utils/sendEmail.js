@@ -34,6 +34,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendEmail = async (options) => {
   try {
+    console.log("options in send email- -->", options);
     // 1. Render EJS template to HTML
     const templatePath = path.join(
       __dirname,
@@ -53,6 +54,7 @@ const sendEmail = async (options) => {
       html: html,
     };
 
+    console.log("msg in send email- -->", msg);
     // 3. Send mail via SendGrid
     await sgMail.send(msg);
   } catch (error) {
