@@ -43,6 +43,7 @@ const sendEmail = async (options) => {
 
     const html = await ejs.renderFile(templatePath, options.templateData || {});
 
+    console.log("process----->", process.env.EMAIL_FROM);
     // 2. Build email
     const msg = {
       from: {
