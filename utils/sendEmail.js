@@ -49,7 +49,7 @@ const sendEmail = async (options) => {
         email: process.env.EMAIL_FROM,
         name: "Speed Up",
       },
-      to: process.env.EMAIL_FROM, // receiver
+      to: options.email, // receiver
       subject: options.subject || "Speed Up Notification",
       html: html,
     };

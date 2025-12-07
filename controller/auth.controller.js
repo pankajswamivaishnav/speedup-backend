@@ -253,7 +253,7 @@ const demoRequestGet = catchAsyncHandler(async (req, res, next) => {
       )}.`,
     };
     await sendEmail({
-      email: req.body.email,
+      email: process.env.EMAIL_FROM,
       subject: "Speed up demo request",
       templateData: demoData, // ✅ fixed
     });
