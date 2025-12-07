@@ -55,7 +55,8 @@ const sendEmail = async (options) => {
     };
 
     // 3. Send mail via SendGrid
-    await sgMail.send(msg);
+    const result = await sgMail.send(msg);
+    console.log("result in send email- -->", result);
   } catch (error) {
     console.error("SendGrid email error:", error);
 

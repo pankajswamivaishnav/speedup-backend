@@ -222,6 +222,7 @@ const forgotPassword = catchAsyncHandler(async (req, res, next) => {
       subject: "Your Password Reset",
       templateData,
     });
+
     res.status(200).json({
       success: true,
       message: `Email Sent successfully On ${user.email}`,

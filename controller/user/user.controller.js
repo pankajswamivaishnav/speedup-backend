@@ -264,6 +264,52 @@ exports.updateUser = catchAsyncHandler(async (req, res, next) => {
 
       break;
     }
+    case "super_admin": {
+      const {
+        transportName,
+        first_name,
+        last_name,
+        mobileNumber,
+        officeNumber,
+        registrationNumber,
+        gstNumber,
+        transportAddress,
+        email,
+        panCardNumber,
+        pinCode,
+        city,
+        state,
+        country,
+        faithLine,
+        role,
+        avatar,
+      } = req.body;
+      const user = await Transporter.findById({ _id: loginUser._id });
+      if (!user) {
+        return next(new ErrorHandler("User Not Found", 404));
+      }
+      user.transportName = transportName || user.transportName;
+      user.first_name = first_name || user.first_name;
+      user.last_name = last_name || user.last_name;
+      (user.mobileNumber = mobileNumber || user.mobileNumber),
+        (user.officeNumber = officeNumber || user.officeNumber),
+        (user.registrationNumber =
+          registrationNumber || user.registrationNumber),
+        (user.email = email || user.email),
+        (user.faithLine = faithLine || user.faithLine),
+        (user.country = country || user.country),
+        (user.state = state || user.state),
+        (user.city = city || user.city),
+        (user.pinCode = pinCode || user.pinCode),
+        (user.panCardNumber = panCardNumber || user.panCardNumber),
+        (user.gstNumber = gstNumber || user.gstNumber),
+        (user.transportAddress = transportAddress || user.transportAddress),
+        (user.avatar = avatar || user.avatar),
+        (user.role = role || user.role);
+
+      isUpdatedUser = await user.save();
+      break;
+    }
   }
 
   if (!isUpdatedUser) {
@@ -322,6 +368,10 @@ exports.getUserById = catchAsyncHandler(async (req, res, next) => {
     }
     case "driver": {
       response = await Driver.findById({ _id: user._id });
+      break;
+    }
+    case "super_admin": {
+      response = await Transporter.findById({ _id: user._id });
       break;
     }
   }
