@@ -10,6 +10,7 @@ const moment = require("moment");
 const crypto = require("crypto");
 const userModel = require("../config/models/user.model");
 const mongoose = require("mongoose");
+const sendNotificationToAllUsers = require("../utils/sendNotificationToAllUsers");
 
 // Register
 const register = catchAsyncHandler(async (req, res, next) => {
@@ -91,6 +92,22 @@ const register = catchAsyncHandler(async (req, res, next) => {
     // Commit transaction
     await session.commitTransaction();
     session.endSession();
+
+    // Send notification to all users when transporter is registered
+    if (role === "transporter" && result && result.length > 0) {
+      try {
+        const transporterName =
+          result[0].transportName || `${firstName} ${lastName}`;
+        await sendNotificationToAllUsers({
+          title: "New Transporter Registered! 🚚",
+          body: `${transporterName} has joined Speed Up. Check them out!`,
+          url: "/transporters",
+        });
+      } catch (notificationError) {
+        // Log error but don't fail the registration
+        console.error("Error sending notifications:", notificationError);
+      }
+    }
 
     res.status(201).json({
       status: 201,

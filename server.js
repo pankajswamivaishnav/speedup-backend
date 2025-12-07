@@ -14,9 +14,9 @@ const Transport = require("./routes/transport/transport.routes");
 const BiltyRoute = require("./routes/bilty/bilty.routes");
 const DriverRoute = require("./routes/driver/driver.routes");
 const VendorRoute = require("./routes/vendors/vendor.routes");
+const NotificationRoute = require("./routes/notification/notification.routes");
 const passport = require("passport");
 require("./helpers/passport");
-
 
 // Middlewares
 app.use(express.json());
@@ -27,7 +27,8 @@ app.use("/api/v1", Transport);
 app.use("/api/v1", BiltyRoute);
 app.use("/api/v1", DriverRoute);
 app.use("/api/v1", VendorRoute);
-app.use("/api/v1", AuthRoute);;
+app.use("/api/v1", AuthRoute);
+app.use("/api/v1", NotificationRoute);
 app.use(errorMiddleware);
 
 // Listening on port

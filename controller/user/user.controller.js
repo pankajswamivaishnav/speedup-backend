@@ -9,6 +9,7 @@ const transportCardModel = require("../../config/models/transportCard.model");
 const sendEmail = require("../../utils/sendEmail");
 const Vendor = require("../../config/models/vendors.models");
 const Driver = require("../../config/models/driver.model");
+const sendNotificationToAllUsers = require("../../utils/sendNotificationToAllUsers");
 //Register Transporter
 exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
   const {
@@ -113,6 +114,19 @@ exports.registerTransporter = catchAsyncHandler(async (req, res, next) => {
     subject: "🎉 Welcom to Speed Up ! 🎉",
     templateData,
   });
+
+  // Send notification to all users when transporter is registered
+  try {
+    const transporterName = transportName || `${first_name} ${last_name}`;
+    await sendNotificationToAllUsers({
+      title: "New Transporter Registered! 🚚",
+      body: `${transporterName} has joined Speed Up. Check them out!`,
+      url: "/transporters",
+    });
+  } catch (notificationError) {
+    // Log error but don't fail the registration
+    console.error("Error sending notifications:", notificationError);
+  }
 
   setCookieToken(
     transporterProfile,

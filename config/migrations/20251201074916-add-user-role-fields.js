@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 module.exports = {
   /**
    * @param db {import('mongodb').Db}
