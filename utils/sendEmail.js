@@ -43,19 +43,17 @@ const sendEmail = async (options) => {
 
     const html = await ejs.renderFile(templatePath, options.templateData || {});
 
-    console.log("process----->", process.env.EMAIL_FROM);
     // 2. Build email
     const msg = {
       from: {
-        email: process.env.EMAIL_FROM, // must be a verified SendGrid sender
+        email: process.env.EMAIL_FROM,
         name: "Speed Up",
       },
-      to: options.email, // receiver
+      to: process.env.EMAIL_FROM, // receiver
       subject: options.subject || "Speed Up Notification",
       html: html,
     };
 
-    console.log("msg in send email- -->", msg);
     // 3. Send mail via SendGrid
     await sgMail.send(msg);
   } catch (error) {
