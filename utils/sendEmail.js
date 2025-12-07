@@ -3,10 +3,18 @@ const ejs = require("ejs");
 const path = require("path");
 const sendEmail = async (options) => {
   // Create Transport
+  // const transporter = nodemailer.createTransport({
+  //   host: "smtp.ethereal.email",
+  //   port: 587,
+  //   secure: false,
+  //   service: "gmail",
+  //   auth: {
+  //     user: process.env.EMAIL_USERNAME,
+  //     pass: process.env.EMAIL_PASSWORD,
+  //   },
+  // });
+
   const transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false,
     service: "gmail",
     auth: {
       user: process.env.EMAIL_USERNAME,
