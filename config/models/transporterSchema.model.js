@@ -107,6 +107,14 @@ const transporterSchema = new mongoose.Schema(
       // required: true,
       default: "transporter",
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
   },

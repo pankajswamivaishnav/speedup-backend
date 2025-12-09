@@ -31,7 +31,6 @@ const sendNotificationToAllUsers = async (notificationPayload) => {
     const promises = subscriptions.map(async (subscription) => {
       try {
         await webpush.sendNotification(subscription.subscription, payload);
-        console.log(`Notification sent to user: ${subscription.userId}`);
       } catch (error) {
         console.error(
           `Error sending notification to user ${subscription.userId}:`,
@@ -48,7 +47,6 @@ const sendNotificationToAllUsers = async (notificationPayload) => {
     });
 
     await Promise.allSettled(promises);
-    console.log(`Notifications sent to ${subscriptions.length} users`);
   } catch (error) {
     console.error("Error in sendNotificationToAllUsers:", error);
     throw error;

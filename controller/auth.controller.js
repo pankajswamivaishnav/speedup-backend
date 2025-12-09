@@ -11,6 +11,8 @@ const crypto = require("crypto");
 const userModel = require("../config/models/user.model");
 const mongoose = require("mongoose");
 const sendNotificationToAllUsers = require("../utils/sendNotificationToAllUsers");
+const { generateOtp } = require("../helpers/function");
+const otpModel = require("../config/models/otp.model");
 
 // Register
 const register = catchAsyncHandler(async (req, res, next) => {
@@ -89,9 +91,28 @@ const register = catchAsyncHandler(async (req, res, next) => {
         break;
     }
 
-    // Commit transaction
-    await session.commitTransaction();
-    session.endSession();
+    const otp = generateOtp();
+    const expiresAt = moment().add(5, "minutes").toDate();
+    await otpModel.create({
+      email,
+      otp,
+      expiresAt,
+    });
+    const templateData = {
+      title: "OTP Verification Code",
+      greeting: "Pankaj Swami Vaishnav",
+      message:
+        "To verify your account, please use the One-Time Password (OTP) provided below. This OTP is valid for the next 10 minutes for security purposes.",
+      otpCode: otp, // <-- yaha tumhara generated OTP aayega
+      additionalInfo:
+        "If you did not initiate this verification request, please ignore this email. Your account will remain secure.",
+    };
+
+    await sendEmail({
+      email: email,
+      subject: "Account Verification OTP",
+      templateData,
+    });
 
     // Send notification to all users when transporter is registered
     if (role === "transporter" && result && result.length > 0) {
@@ -109,9 +130,13 @@ const register = catchAsyncHandler(async (req, res, next) => {
       }
     }
 
+    // Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
     res.status(201).json({
       status: 201,
-      message: "User Created Successfully",
+      message: "Verification email sent successfully",
       data: result,
     });
   } catch (error) {
@@ -312,6 +337,88 @@ const resetPassword = catchAsyncHandler(async (req, res, next) => {
   });
 });
 
+// Verify otp
+const verifyOtp = catchAsyncHandler(async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { otp, email } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required",
+      });
+    }
+
+    const otpRecord = await otpModel
+      .findOne({ email })
+      .sort({ createdAt: -1 }) // newest OTP
+      .exec();
+
+    if (!otpRecord) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP not found. Please request a new one.",
+      });
+    }
+
+    // Check: already used?
+    if (otpRecord.isUsed) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP already used. Please request a new one.",
+      });
+    }
+
+    // Check: expired?
+    if (otpRecord.expiresAt < moment()) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired. Please request a new one.",
+      });
+    }
+
+    // Check: OTP match?
+    if (otpRecord.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    // Verify user mean isVerified true mark
+    const [transporter, driver, vendor] = await Promise.all([
+      Transporter.findOne({ $or: [{ email }] }),
+      Driver.findOne({ $or: [{ email }] }),
+      Vendor.findOne({ $or: [{ email }] }),
+    ]);
+
+    const user = transporter || driver || vendor;
+
+    if (!user) {
+      return next(new ErrorHandler("User not found", 401));
+    }
+
+    user.isVerified = true;
+    await user.save();
+
+    otpRecord.isUsed = true;
+    await otpRecord.save();
+
+    // Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.json({
+      status: 200,
+      success: true,
+      message: "OTP verified successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = {
   login,
   me,
@@ -319,4 +426,5 @@ module.exports = {
   resetPassword,
   demoRequestGet,
   register,
+  verifyOtp,
 };

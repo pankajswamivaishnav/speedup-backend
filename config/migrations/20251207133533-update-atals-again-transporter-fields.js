@@ -1,24 +1,81 @@
+const mongoose = require("mongoose");
+
 module.exports = {
-  /**
-   * @param db {import('mongodb').Db}
-   * @param client {import('mongodb').MongoClient}
-   * @returns {Promise<void>}
-   */
   async up(db, client) {
-    // TODO write your migration here.
-    // See https://github.com/seppevs/migrate-mongo/#creating-a-new-migration-script
-    // Example:
-    // await db.collection('albums').updateOne({artist: 'The Beatles'}, {$set: {blacklisted: true}});
+    const collection = db.collection("transporters");
+
+    console.log("Step 1: Copy old fields → new fields");
+
+    // Step 1: Copy old values into new fields
+    await collection.updateMany(
+      { transporter_first_name: { $exists: true } },
+      {
+        $set: {
+          first_name: { $ifNull: ["$first_name", "$transporter_first_name"] },
+        },
+      }
+    );
+
+    await collection.updateMany(
+      { transporter_last_name: { $exists: true } },
+      {
+        $set: {
+          last_name: { $ifNull: ["$last_name", "$transporter_last_name"] },
+        },
+      }
+    );
+
+    console.log("Step 2: Remove old fields");
+
+    // Step 2: Remove old fields
+    await collection.updateMany(
+      {},
+      {
+        $unset: {
+          transporter_first_name: "",
+          transporter_last_name: "",
+        },
+      }
+    );
   },
 
-  /**
-   * @param db {import('mongodb').Db}
-   * @param client {import('mongodb').MongoClient}
-   * @returns {Promise<void>}
-   */
   async down(db, client) {
-    // TODO write the statements to rollback your migration (if possible)
-    // Example:
-    // await db.collection('albums').updateOne({artist: 'The Beatles'}, {$set: {blacklisted: false}});
-  }
+    const collection = db.collection("transporters");
+
+    console.log("Rollback: Copy new fields → old fields");
+
+    await collection.updateMany(
+      { first_name: { $exists: true } },
+      {
+        $set: {
+          transporter_first_name: {
+            $ifNull: ["$transporter_first_name", "$first_name"],
+          },
+        },
+      }
+    );
+
+    await collection.updateMany(
+      { last_name: { $exists: true } },
+      {
+        $set: {
+          transporter_last_name: {
+            $ifNull: ["$transporter_last_name", "$last_name"],
+          },
+        },
+      }
+    );
+
+    console.log("Rollback: Remove new fields");
+
+    await collection.updateMany(
+      {},
+      {
+        $unset: {
+          first_name: "",
+          last_name: "",
+        },
+      }
+    );
+  },
 };

@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const moment = require("moment");
 const { JWT_SECRET } = require("../config/config");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 exports.genTransportId = async (id) => {
   try {
@@ -28,4 +29,10 @@ exports.comparePassword = async (plainPassword, hashedPassword) => {
   return await bcrypt.compare(plainPassword, hashedPassword);
 };
 
-module.exports = { generateToken };
+// 4 - digit OTP generate
+const generateOtp = () => {
+  const otp = crypto.randomInt(1000, 9999).toString();
+  return otp;
+};
+
+module.exports = { generateToken, generateOtp };
