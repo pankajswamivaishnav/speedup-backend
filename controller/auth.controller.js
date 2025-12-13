@@ -24,7 +24,7 @@ const register = catchAsyncHandler(async (req, res, next) => {
       req.body;
 
     // 1️⃣ Create user
-    const user = await userModel.create(
+    await userModel.create(
       [
         {
           firstName,
@@ -138,6 +138,7 @@ const register = catchAsyncHandler(async (req, res, next) => {
       status: 201,
       message: "Verification email sent successfully",
       data: result,
+      expiresAt: expiresAt,
     });
   } catch (error) {
     await session.abortTransaction();
@@ -175,6 +176,38 @@ const login = catchAsyncHandler(async (req, res, next) => {
   const isPasswordMatched = await user.comparePassword(password);
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Credentials mismatch", 401));
+  }
+
+  if (user.isVerified !== true) {
+    const otp = generateOtp();
+    const expiresAt = moment().add(5, "minutes").toDate();
+    await otpModel.create({
+      email,
+      otp,
+      expiresAt,
+    });
+    const templateData = {
+      title: "OTP Verification Code",
+      greeting: "Pankaj Swami Vaishnav",
+      message:
+        "To verify your account, please use the One-Time Password (OTP) provided below. This OTP is valid for the next 10 minutes for security purposes.",
+      otpCode: otp, // <-- yaha tumhara generated OTP aayega
+      additionalInfo:
+        "If you did not initiate this verification request, please ignore this email. Your account will remain secure.",
+    };
+
+    await sendEmail({
+      email: email,
+      subject: "Account Verification OTP",
+      templateData,
+    });
+
+    return res.status(401).json({
+      success: false,
+      message: "User not verified",
+      isVerified: false,
+      expiresAt: expiresAt,
+    });
   }
 
   setCookieToken(user, 200, "Login Successfully", res, keepSignedIn);
@@ -419,6 +452,42 @@ const verifyOtp = catchAsyncHandler(async (req, res, next) => {
   }
 });
 
+// Resend otp
+const resendOtp = catchAsyncHandler(async (req, res, next) => {
+  try {
+    const otp = generateOtp();
+    const expiresAt = moment().add(5, "minutes").toDate();
+    await otpModel.create({
+      email: req.body.email,
+      otp,
+      expiresAt,
+    });
+    const templateData = {
+      title: "OTP Verification Code",
+      greeting: "Pankaj Swami Vaishnav",
+      message:
+        "To verify your account, please use the One-Time Password (OTP) provided below. This OTP is valid for the next 10 minutes for security purposes.",
+      otpCode: otp, // <-- yaha tumhara generated OTP aayega
+      additionalInfo:
+        "If you did not initiate this verification request, please ignore this email. Your account will remain secure.",
+    };
+
+    await sendEmail({
+      email: req.body.email,
+      subject: "Account Verification OTP",
+      templateData,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Resend OTP successfully",
+      expiresAt,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = {
   login,
   me,
@@ -427,4 +496,5 @@ module.exports = {
   demoRequestGet,
   register,
   verifyOtp,
+  resendOtp,
 };
