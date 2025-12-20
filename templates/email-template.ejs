@@ -174,9 +174,8 @@
 
         <div class="divider"></div>
 
-        <!-- Dynamic Action Area: OTP OR Button -->
         <div class="button-container">
-          <% if (otpCode) { %>
+          <% if (typeof otpCode !== 'undefined' && otpCode) { %>
           <div
             style="
               display: inline-block;
@@ -187,11 +186,11 @@
               font-weight: 700;
               letter-spacing: 6px;
               border-radius: 10px;
-              box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
             "
           >
             <%= otpCode %>
           </div>
+
           <% } else if (buttonText && buttonUrl) { %>
           <a href="<%= buttonUrl %>" class="cta-button"> <%= buttonText %> </a>
           <% } %>

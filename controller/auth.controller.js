@@ -247,6 +247,7 @@ const me = catchAsyncHandler(async (req, res) => {
 
 // Forgot Password
 const forgotPassword = catchAsyncHandler(async (req, res, next) => {
+  console.log("insert in forgot password--->");
   const { email } = req.body;
   const [transporter, vendor, driver] = await Promise.all([
     Transporter.findOne({ email: email }),
@@ -270,11 +271,13 @@ const forgotPassword = catchAsyncHandler(async (req, res, next) => {
       greeting: "Pankaj Swami Vaishnav",
       message:
         "We received a request to reset your password. Click the button below to create a new password. This link will expire in 24 hours for security reasons.",
+      otpCode: null,
       buttonText: "Change Password",
       buttonUrl: `${resetPasswordLink}`,
       additionalInfo:
         "If you didn't request this password reset, please ignore this email. Your password will remain unchanged.",
     };
+
     await sendEmail({
       email: user.email,
       subject: "Your Password Reset",
