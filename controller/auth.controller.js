@@ -8,7 +8,7 @@ const constants = require("../helpers/constants");
 const sendEmail = require("../utils/sendEmail");
 const moment = require("moment");
 const crypto = require("crypto");
-const userModel = require("../config/models/user.model");
+const UserModel = require("../config/models/user.model");
 const mongoose = require("mongoose");
 const sendNotificationToAllUsers = require("../utils/sendNotificationToAllUsers");
 const { generateOtp } = require("../helpers/function");
@@ -24,7 +24,7 @@ const register = catchAsyncHandler(async (req, res, next) => {
       req.body;
 
     // 1️⃣ Create user
-    await userModel.create(
+    await UserModel.create(
       [
         {
           firstName,
@@ -230,6 +230,7 @@ const me = catchAsyncHandler(async (req, res) => {
   ]);
 
   const user = transporter || driver || vendor;
+  console.log("user-->", user);
 
   // const user = await Transporter.findOne({
   //   email: requestUser.email,
@@ -429,6 +430,7 @@ const verifyOtp = catchAsyncHandler(async (req, res, next) => {
       Vendor.findOne({ $or: [{ email }] }),
     ]);
 
+    const userDoc = await UserModel.findOne({ email: email });
     const user = transporter || driver || vendor;
 
     if (!user) {
@@ -436,6 +438,7 @@ const verifyOtp = catchAsyncHandler(async (req, res, next) => {
     }
 
     user.isVerified = true;
+    userDoc.isVerified = true;
     await user.save();
 
     otpRecord.isUsed = true;
