@@ -5,6 +5,7 @@ const ManagedVendor = require("../../config/models/managedVendor.model");
 // Middleware & Utils Error
 const catchAsyncHandler = require("../../middleware/catchAsyncError");
 const ErrorHandler = require("../../utils/errorHandler");
+const transporterSchemaModel = require("../../config/models/transporterSchema.model");
 
 // Get Total Transporter
 exports.getTotalTransporter = catchAsyncHandler(async (req, res, next) => {
@@ -20,14 +21,16 @@ exports.getTotalTransporter = catchAsyncHandler(async (req, res, next) => {
     filter.transportName = { $regex: searchQuery, $options: "i" };
   }
 
-  const totalUsers = await User.countDocuments(filter);
+  const totalUsers = await transporterSchemaModel.countDocuments(filter);
   if (page == 0 && limit == 0) {
-    totalTransporter = await User.find(filter);
+    totalTransporter = await transporterSchemaModel.find(filter);
   } else {
-    totalTransporter = await User.find(filter)
+    totalTransporter = await transporterSchemaModel
+      .find(filter)
       .skip(skip || 0)
       .limit(limit || 10);
   }
+
   res.status(200).json({
     success: true,
     data: totalTransporter,
@@ -174,8 +177,10 @@ exports.getAllManagedVendorsForAdmin = catchAsyncHandler(
 
     const page = parseInt(req.query.page) || 0;
     const limit = parseInt(req.query.limit) || 10;
+
     const searchQuery = req.query.search;
-    const creatorId = req.query.creatorId;
+
+    const creatorId = req.quyrId;
     const unique = req.query.unique === "true" || req.query.unique === true;
     const skip = page * limit;
 
@@ -183,7 +188,7 @@ exports.getAllManagedVendorsForAdmin = catchAsyncHandler(
     let filter = { isDeleted: false };
 
     // Add creator filter if provided
-    if (creatorId && creatorId !== "undefined") {
+    if (creatorId && creatorId !== "und fined") {
       filter["creator.userId"] = creatorId;
     }
 

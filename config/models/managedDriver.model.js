@@ -13,7 +13,7 @@ const managedDriverSchema = new mongoose.Schema(
       trim: true,
     },
     mobileNumber: {
-      type: Number,
+      type: String,
       required: true,
       trim: true,
     },

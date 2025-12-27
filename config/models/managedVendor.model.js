@@ -13,7 +13,7 @@ const managedVendorSchema = new mongoose.Schema(
       trim: true,
     },
     mobileNumber: {
-      type: Number,
+      type: String,
       unique: true,
       required: true,
       trim: true,

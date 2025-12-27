@@ -73,6 +73,8 @@ exports.getAllManagedDrivers = catchAsyncHandler(async (req, res, next) => {
     "creator.userId": creatorId,
   };
 
+  console.log("search query--->", searchQuery);
+
   if (searchQuery && searchQuery !== "undefined") {
     filter.$or = [
       { first_name: { $regex: searchQuery, $options: "i" } },
@@ -81,6 +83,8 @@ exports.getAllManagedDrivers = catchAsyncHandler(async (req, res, next) => {
       { truckNumber: { $regex: searchQuery, $options: "i" } },
     ];
   }
+
+  console.log("filter--->", filter);
 
   const totalDrivers = await ManagedDriver.countDocuments(filter);
 

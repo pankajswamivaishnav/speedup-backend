@@ -230,7 +230,6 @@ const me = catchAsyncHandler(async (req, res) => {
   ]);
 
   const user = transporter || driver || vendor;
-  console.log("user-->", user);
 
   // const user = await Transporter.findOne({
   //   email: requestUser.email,
