@@ -71,6 +71,10 @@ const vendorSchema = new mongoose.Schema(
         type: "String",
       },
     },
+    razorpayCustomerId: {
+      type: String,
+      default: null,
+    },
     isDeleted: {
       type: Boolean,
       required: true,
@@ -83,6 +87,9 @@ const vendorSchema = new mongoose.Schema(
     isPremium: {
       type: Boolean,
       default: false,
+    },
+    subscriptionId: {
+      type: mongoose.Types.ObjectId,
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,

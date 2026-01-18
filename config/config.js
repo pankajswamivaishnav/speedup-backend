@@ -10,4 +10,5 @@ module.exports = {
   SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
   SENDGRID_API_SECRET: process.env.SENDGRID_API_SECRET,
   FRONTEND_URL: process.env.FRONTEND_URL,
+  RAZORPAY_URL: process.env.RAZORPAY_URL,
 };

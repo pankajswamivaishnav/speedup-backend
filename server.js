@@ -15,6 +15,8 @@ const BiltyRoute = require("./routes/bilty/bilty.routes");
 const DriverRoute = require("./routes/driver/driver.routes");
 const VendorRoute = require("./routes/vendors/vendor.routes");
 const NotificationRoute = require("./routes/notification/notification.routes");
+const PlanRoute = require("./routes/plan/plan.routes");
+const PaymentRoute = require("./routes/payment/payment.routes");
 const passport = require("passport");
 require("./helpers/passport");
 
@@ -29,6 +31,8 @@ app.use("/api/v1", DriverRoute);
 app.use("/api/v1", VendorRoute);
 app.use("/api/v1", AuthRoute);
 app.use("/api/v1", NotificationRoute);
+app.use("/api/v1", PlanRoute);
+app.use("/api/v1", PaymentRoute);
 app.use(errorMiddleware);
 
 // Listening on port

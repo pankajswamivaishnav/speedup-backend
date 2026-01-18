@@ -58,6 +58,13 @@ const driverSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    subscriptionId: {
+      type: mongoose.Types.ObjectId,
+    },
+    razorpayCustomerId: {
+      type: String,
+      default: null,
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
   },
